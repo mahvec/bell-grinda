@@ -7,6 +7,7 @@ BellGrinda is a local-first progressive training PWA for kettlebell and bodyweig
 ```bash
 npm install
 npm run dev
+npm run dev --workspace @bellgrinda/api
 npm test
 npm run typecheck
 npm run lint
@@ -27,3 +28,5 @@ npm run build
 - shared runtime-validated domain contracts and automated tests.
 
 See [docs/BUILD_STATUS.md](docs/BUILD_STATUS.md) for the delivery sequence and current boundaries.
+
+The optional sync API lives in `apps/api`. Its first release includes health checks, PostgreSQL migrations, a synced profile read, and atomic session/pain-event synchronization while the PWA remains local-first. See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for Railway and Cloudflare Pages setup.

@@ -19,6 +19,7 @@ The usable Novice loop is implemented end to end:
 - `apps/web`: React PWA, Redux application state, Dexie persistence, responsive product UI.
 - `packages/domain`: Zod contracts shared by the app and engines.
 - `packages/training-engine`: pure deterministic readiness, workout, and pain-decision logic.
+- `apps/api`: Express sync API with PostgreSQL/Drizzle migration foundation, health/readiness endpoints, and an offline-safe session sync boundary.
 - Tests: domain validation, readiness boundaries, workout determinism, pain decisions, IndexedDB persistence, media catalog safety, video fallback behavior, and application bootstrap.
 
 ## Development sequence from here
@@ -36,13 +37,13 @@ The usable Novice loop is implemented end to end:
 1. Completion logging: RPE, notes, partial/abandoned outcomes, and richer per-exercise actuals.
 2. Assessments and progression: baseline tests, personal records, exposure-based progression, and regression rules.
 3. Program depth: Advanced Novice, Intermediate, and Advanced template engines behind stable versioned contracts.
-4. Sync and identity: optional account, offline mutation queue, conflict policy, and append-safe pain-event synchronization.
+4. Sync client and identity: connect the optional API from the PWA, add an offline mutation queue, account authentication, conflict policy, and append-safe pain-event synchronization.
 5. Coaching layer: explanations and summaries derived from deterministic engine output, never allowed to override safety logic.
 6. Production hardening: end-to-end browser tests, accessibility audit, observability, privacy controls, deployment, and staged rollout.
 
 ## Explicit boundaries
 
-- There is no remote backend or account system yet; data is local to the browser profile.
+- The sync API exists but is not yet connected to the PWA or deployed. Data is still local to the browser profile unless a client explicitly uses the API.
 - Profile displays saved settings and installation guidance; it is not yet a profile editor. Activity shows local history; assessments and progression charts are not implemented.
 - The app provides training guidance, not medical diagnosis.
 - The current generator supports the Novice level only.

@@ -1,0 +1,10 @@
+[build]
+builder = "RAILPACK"
+buildCommand = "npm ci && npm run build --workspace @bellgrinda/api"
+
+[deploy]
+startCommand = "npm run start --workspace @bellgrinda/api"
+healthcheckPath = "/api/v1/health"
+healthcheckTimeout = 30
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 5

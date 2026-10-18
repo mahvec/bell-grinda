@@ -1,0 +1,35 @@
+{
+  "name": "@bellgrinda/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "tsx src/index.ts",
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "lint": "eslint src",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "tsx src/database/migrate.ts"
+  },
+  "dependencies": {
+    "@bellgrinda/domain": "*",
+    "cors": "^2.8.5",
+    "dotenv": "^16.6.1",
+    "drizzle-orm": "^0.44.7",
+    "express": "^5.1.0",
+    "pg": "^8.16.3",
+    "zod": "^4.1.12"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.3",
+    "@types/node": "^24.6.1",
+    "@types/pg": "^8.15.5",
+    "@types/supertest": "^6.0.3",
+    "drizzle-kit": "^0.31.4",
+    "supertest": "^7.1.4",
+    "tsx": "^4.20.6"
+  }
+}
