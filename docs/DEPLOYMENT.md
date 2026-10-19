@@ -11,7 +11,7 @@ The PWA remains useful without the API. The API is for safe backup and future mu
 
 | Part | Host | Why |
 | --- | --- | --- |
-| PWA | Cloudflare Pages | Global static delivery for the PWA shell, icons, and exercise media. |
+| PWA | Vercel | GitHub-connected Vite deployment with preview URLs and SPA routing. |
 | API and database | Railway | One GitHub-connected Node service plus managed PostgreSQL, matching the Express and Drizzle implementation. |
 
 ## Deploy the API on Railway
@@ -24,7 +24,7 @@ The PWA remains useful without the API. The API is for safe backup and future mu
    ```text
    DATABASE_URL=${{Postgres.DATABASE_URL}}
    NODE_ENV=production
-   CORS_ORIGIN=https://YOUR-PWA-DOMAIN
+   CORS_ORIGIN=https://YOUR-VERCEL-DOMAIN
    LOCAL_USER_ID=00000000-0000-4000-8000-000000000001
    ```
 
@@ -43,9 +43,11 @@ The PWA remains useful without the API. The API is for safe backup and future mu
 
 `/health` confirms the service is alive. `/health/ready` additionally checks PostgreSQL.
 
-## Deploy the PWA on Cloudflare Pages
+## Deploy the PWA on Vercel
 
-Connect the same GitHub repository and configure:
+1. Import the `mahvec/bell-grinda` GitHub repository into a new Vercel project.
+2. Keep the project root at the repository root. The PWA uses the shared workspace packages, so setting the root to `apps/web` would prevent Vercel from reading them.
+3. Vercel reads `vercel.json`, which supplies these settings:
 
 ```text
 Build command: npm ci && npm run build --workspace @bellgrinda/web
@@ -53,7 +55,12 @@ Build output: apps/web/dist
 Node version: 22
 ```
 
-Once the PWA has an API client, set its public API base URL to the Railway domain and update `CORS_ORIGIN` on Railway to the Pages URL. Do not put `DATABASE_URL` or other server credentials into Pages variables.
+4. Deploy. Vercel will create a production URL and preview URLs for future GitHub commits.
+5. Add a custom domain when ready, then set Railway's `CORS_ORIGIN` to that exact `https://` domain.
+
+The `vercel.json` rewrite returns the PWA shell for direct links such as `/workout`, so browser refresh and shared links keep working.
+
+Once the PWA has an API client, set its public API base URL to the Railway domain and update `CORS_ORIGIN` on Railway to the Vercel production URL. Do not put `DATABASE_URL` or other server credentials into Vercel variables.
 
 ## Before opening accounts to users
 
