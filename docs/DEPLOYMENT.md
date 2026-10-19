@@ -50,7 +50,8 @@ The PWA remains useful without the API. The API is for safe backup and future mu
 3. Vercel reads `vercel.json`, which supplies these settings:
 
 ```text
-Build command: npm ci && npm run build --workspace @bellgrinda/web
+Install command: npm ci --include=dev
+Build command: npm run build --workspace @bellgrinda/web
 Build output: apps/web/dist
 Node version: 22
 ```
