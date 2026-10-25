@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
   createSession,
+  getSessionCompletedSets,
+  getSessionCompletionPercentage,
+  getSessionSkippedSets,
   generatedWorkoutSchema,
   readinessInputSchema,
   workoutSessionSchema,
@@ -50,6 +53,8 @@ describe("domain contracts", () => {
 
     expect(workoutSessionSchema.safeParse(session).success).toBe(true);
     expect(session.status).toBe("active");
+    expect(session.sessionSchemaVersion).toBe(2);
+    expect(session.setLogs).toEqual([]);
     expect(session.exerciseLogs).toEqual([
       {
         exerciseId: "deadlift",
@@ -58,5 +63,39 @@ describe("domain contracts", () => {
         actualTarget: null
       }
     ]);
+  });
+
+  it("calculates completion from actual set records", () => {
+    const session = createSession({ ...workout, rounds: 2 }, new Date("2026-10-19T06:00:00.000Z"));
+    session.setLogs = [
+      {
+        exerciseId: "deadlift",
+        exerciseName: "Kettlebell deadlift",
+        round: 1,
+        status: "completed",
+        plannedTarget: "8 reps",
+        actualTarget: "6 reps",
+        actualReps: 6,
+        plannedLoadKg: 12,
+        actualLoadKg: 10,
+        recordedAt: "2026-10-19T06:03:00.000Z"
+      },
+      {
+        exerciseId: "deadlift",
+        exerciseName: "Kettlebell deadlift",
+        round: 2,
+        status: "skipped",
+        plannedTarget: "8 reps",
+        actualTarget: null,
+        actualReps: null,
+        plannedLoadKg: 12,
+        actualLoadKg: null,
+        recordedAt: "2026-10-19T06:05:00.000Z"
+      }
+    ];
+
+    expect(getSessionCompletedSets(session)).toBe(1);
+    expect(getSessionSkippedSets(session)).toBe(1);
+    expect(getSessionCompletionPercentage(session)).toBe(50);
   });
 });

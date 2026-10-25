@@ -3,12 +3,14 @@ import { Barbell } from "@phosphor-icons/react/Barbell";
 import { BookOpen } from "@phosphor-icons/react/BookOpen";
 import { House } from "@phosphor-icons/react/House";
 import { UserCircle } from "@phosphor-icons/react/UserCircle";
+import { ChartLineUp } from "@phosphor-icons/react/ChartLineUp";
 import { NavLink } from "react-router-dom";
 
 const navigation = [
   { to: "/", label: "Train", icon: House },
   { to: "/exercises", label: "Exercises", icon: BookOpen },
   { to: "/history", label: "Activity", icon: Barbell },
+  { to: "/progress", label: "Progress", icon: ChartLineUp },
   { to: "/profile", label: "You", icon: UserCircle }
 ];
 
