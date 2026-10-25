@@ -3,7 +3,7 @@
   "framework": "vite",
   "installCommand": "npm ci --include=dev",
   "buildCommand": "npm run build --workspace @bellgrinda/web",
-  "outputDirectory": "apps/web/dist",
+  "outputDirectory": "dist",
   "rewrites": [
     {
       "source": "/(.*)",
