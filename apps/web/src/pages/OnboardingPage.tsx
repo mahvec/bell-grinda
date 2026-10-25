@@ -9,6 +9,7 @@ import { KettlebellArt } from "../components/KettlebellArt";
 
 const choices: { id: Equipment; label: string; note: string }[] = [
   { id: "kettlebell_12", label: "12 kg kettlebell", note: "Required for the initial Novice plan" },
+  { id: "dumbbell", label: "Dumbbell", note: "Optional strength and single-leg work" },
   { id: "mat", label: "Exercise mat", note: "Core and recovery work" },
   { id: "chair", label: "Chair or bench", note: "Regressions and supported movements" },
   { id: "skipping_rope", label: "Skipping rope", note: "Conditioning sessions" }
@@ -18,6 +19,8 @@ export function OnboardingPage() {
   const dispatch = useAppDispatch();
   const [name, setName] = useState("");
   const [equipment, setEquipment] = useState<Equipment[]>(["kettlebell_12", "mat", "skipping_rope"]);
+  const [kettlebellKg, setKettlebellKg] = useState(12);
+  const [dumbbellKg, setDumbbellKg] = useState(15);
   const [error, setError] = useState("");
 
   const submit = async (event: FormEvent) => {
@@ -30,6 +33,8 @@ export function OnboardingPage() {
       trainingLevel: "novice",
       phase: 1,
       equipment,
+      defaultKettlebellKg: kettlebellKg,
+      defaultDumbbellKg: equipment.includes("dumbbell") ? dumbbellKg : undefined,
       createdAt: new Date().toISOString()
     };
     await profileRepository.save(profile);
@@ -73,6 +78,14 @@ export function OnboardingPage() {
             })}
           </div>
         </fieldset>
+        <label className="field">
+          <span>Your kettlebell weight</span>
+          <span className="weight-input"><input type="number" inputMode="decimal" min="1" max="200" step="0.5" value={kettlebellKg} onChange={(event) => setKettlebellKg(Math.max(1, Number(event.target.value)))} /><small>kg</small></span>
+        </label>
+        {equipment.includes("dumbbell") ? <label className="field">
+          <span>Your dumbbell weight</span>
+          <span className="weight-input"><input type="number" inputMode="decimal" min="1" max="200" step="0.5" value={dumbbellKg} onChange={(event) => setDumbbellKg(Math.max(1, Number(event.target.value)))} /><small>kg</small></span>
+        </label> : null}
         {error ? <p className="form-error" role="alert">{error}</p> : null}
         <button className="button primary" type="submit">Create my plan</button>
         <p className="privacy-note">Your first workouts stay on this device.</p>

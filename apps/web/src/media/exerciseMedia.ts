@@ -12,6 +12,23 @@ const commonsLicense = {
 
 const records = [
   {
+    exerciseId: "db-sumo-squat", source: "pexels", sourceId: "35585592",
+    sourcePageUrl: "https://www.pexels.com/video/man-performing-dumbbell-squats-in-gym-35585592/",
+    creator: "khezez | خزاز", licenseName: "Pexels License", licenseUrl: "https://www.pexels.com/license/",
+    videoUrl: "/media/db-sumo-squat-35585592.mp4", posterUrl: "/media/db-sumo-squat-35585592.webp",
+    format: "live-action", durationSeconds: 7, framing: "full-body", reviewedAt: "2026-10-25T12:00:00.000Z",
+    reviewNote: "Exact one-dumbbell sumo squat shown through complete repetitions. Head, hands, dumbbell and feet remain visible. Resized without cropping; audio removed."
+  },
+  {
+    exerciseId: "db-bulgarian-split-squat", source: "pexels", sourceId: "6740156",
+    sourcePageUrl: "https://www.pexels.com/video/a-woman-exercising-in-the-gym-6740156/",
+    creator: "Mikhail Nilov", licenseName: "Pexels License", licenseUrl: "https://www.pexels.com/license/",
+    videoUrl: "/media/db-bulgarian-split-squat-6740156.mp4", posterUrl: "/media/db-bulgarian-split-squat-6740156.webp",
+    format: "live-action", durationSeconds: 24, framing: "full-body", reviewedAt: "2026-10-25T12:00:00.000Z",
+    reviewNote: "Exact rear-foot-elevated dumbbell split squat shown through complete repetitions. Athlete, bench, dumbbells and feet remain visible. Trimmed and resized without cropping; audio removed.",
+    coachingNote: "The video shows the two-dumbbell option. If you own one dumbbell, hold it at your chest or on one side and follow the written guide."
+  },
+  {
     exerciseId: "skipping", source: "pexels", sourceId: "4804825",
     sourcePageUrl: "https://www.pexels.com/video/video-of-man-using-jumping-rope-4804825/",
     creator: "Ketut Subiyanto", licenseName: "Pexels License", licenseUrl: "https://www.pexels.com/license/",

@@ -2,11 +2,12 @@ import { useState, type FormEvent } from "react";
 import { ArrowLeft } from "@phosphor-icons/react/ArrowLeft";
 import { ArrowRight } from "@phosphor-icons/react/ArrowRight";
 import type { ReadinessInput } from "@bellgrinda/domain";
-import { classifyReadiness, generateNoviceWorkout } from "@bellgrinda/training-engine";
+import { applyProgressionDecisions, classifyReadiness, generateProgramWorkout } from "@bellgrinda/training-engine";
 import { Link, useNavigate } from "react-router-dom";
 import { AppShell } from "../components/AppShell";
-import { useAppDispatch } from "../state/hooks";
+import { useAppDispatch, useAppSelector } from "../state/hooks";
 import { setPreparedWorkout } from "../state/store";
+import { progressionDecisionRepository } from "../persistence/database";
 
 const questions: { key: keyof ReadinessInput; label: string; choices: { value: string; label: string }[] }[] = [
   { key: "energy", label: "Energy", choices: [["high", "High"], ["normal", "Normal"], ["low", "Low"], ["very_low", "Very low"]].map(([value, label]) => ({ value: value!, label: label! })) },
@@ -21,10 +22,13 @@ const defaults: ReadinessInput = { energy: "normal", sleep: "good", soreness: "n
 export function ReadinessPage() {
   const [values, setValues] = useState<ReadinessInput>(defaults);
   const dispatch = useAppDispatch();
+  const profile = useAppSelector((state) => state.app.profile)!;
   const navigate = useNavigate();
-  const submit = (event: FormEvent) => {
+  const submit = async (event: FormEvent) => {
     event.preventDefault();
-    dispatch(setPreparedWorkout(generateNoviceWorkout(new Date(), classifyReadiness(values))));
+    const decisions = await progressionDecisionRepository.listLatestApplicable();
+    const workout = generateProgramWorkout(new Date(), classifyReadiness(values), profile);
+    dispatch(setPreparedWorkout(applyProgressionDecisions(workout, decisions)));
     navigate("/workout");
   };
 

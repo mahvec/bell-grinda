@@ -9,9 +9,11 @@ const HistoryPage = lazy(() => import("./pages/HistoryPage").then((module) => ({
 const OnboardingPage = lazy(() => import("./pages/OnboardingPage").then((module) => ({ default: module.OnboardingPage })));
 const ExercisesPage = lazy(() => import("./pages/ExercisesPage").then((module) => ({ default: module.ExercisesPage })));
 const ProfilePage = lazy(() => import("./pages/ProfilePage").then((module) => ({ default: module.ProfilePage })));
+const ProgressPage = lazy(() => import("./pages/ProgressPage").then((module) => ({ default: module.ProgressPage })));
 const ReadinessPage = lazy(() => import("./pages/ReadinessPage").then((module) => ({ default: module.ReadinessPage })));
 const SessionPage = lazy(() => import("./pages/SessionPage").then((module) => ({ default: module.SessionPage })));
 const WorkoutPreviewPage = lazy(() => import("./pages/WorkoutPreviewPage").then((module) => ({ default: module.WorkoutPreviewPage })));
+const WarmupPage = lazy(() => import("./pages/WarmupPage").then((module) => ({ default: module.WarmupPage })));
 
 function RouteFallback() {
   return <main className="boot-screen"><span className="brand-mark large">BG</span><p>Preparing your training view</p></main>;
@@ -37,10 +39,11 @@ export function App() {
         <Route path="/" element={<DashboardPage />} />
         <Route path="/readiness" element={<ReadinessPage />} />
         <Route path="/workout" element={<WorkoutPreviewPage />} />
+        <Route path="/warmup" element={<WarmupPage />} />
         <Route path="/session" element={<SessionPage />} />
         <Route path="/history" element={<HistoryPage />} />
         <Route path="/exercises" element={<ExercisesPage />} />
-        <Route path="/progress" element={<Navigate to="/history" replace />} />
+        <Route path="/progress" element={<ProgressPage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

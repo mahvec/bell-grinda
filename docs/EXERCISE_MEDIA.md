@@ -1,6 +1,6 @@
 # Exercise media review
 
-Reviewed 18 October 2026. The catalog only accepts full-body framing: head, feet, hands and equipment must remain visible, including overhead travel. `object-fit: contain` preserves the source frame in the app. Portrait footage is letterboxed, never enlarged to fill a landscape crop.
+Reviewed 25 October 2026. The catalog only accepts full-body framing: head, feet, hands and equipment must remain visible, including overhead travel. `object-fit: contain` preserves the source frame in the app. Portrait footage is letterboxed, never enlarged to fill a landscape crop.
 
 ## Included assets
 
@@ -16,8 +16,10 @@ Reviewed 18 October 2026. The catalog only accepts full-body framing: head, feet
 | Single-bell deadlift | [Pavel Danilyuk, Pexels 4367574](https://www.pexels.com/video/a-man-holding-onto-a-kettlebell-4367574/) | Live-action single-bell floor-to-stand phase with the athlete fully visible. The written beginner guide specifies a two-hand grip. | Trimmed and looped H.264, forward and reverse playback, no crop, audio removed. |
 | Supported one-arm row | [Taco Fleur, Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Kettlebell_Suitcase_Row_and_Press.webm) | Live-action alternating row phase with the athlete and bells fully visible. The written beginner guide retains the supported setup. | Row phase isolated as H.264, no crop, audio removed. |
 | Deadlift-clean-press complex | [Taco Fleur, Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Kettlebell_Clean_and_Press.webm) | Live-action floor-to-clean-to-press sequence in full-body framing. The written guide specifies the deliberate deadlift pause. | Trimmed H.264, no crop, audio removed. |
+| Dumbbell sumo squat | [khezez \| خزاز, Pexels 35585592](https://www.pexels.com/video/man-performing-dumbbell-squats-in-gym-35585592/) | Exact one-dumbbell sumo squat; head, hands, dumbbell and feet remain visible. | 720px wide H.264, no crop, audio removed. |
+| Dumbbell Bulgarian split squat | [Mikhail Nilov, Pexels 6740156](https://www.pexels.com/video/a-woman-exercising-in-the-gym-6740156/) | Exact rear-foot-elevated split squat; athlete, bench, dumbbells and feet remain visible. | Exercise segment trimmed to 24 seconds, 1280px wide H.264, no crop, audio removed. |
 
-The Wikimedia clips are used under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) and identify the adaptations in the in-app metadata. The deadlift and two bodyweight clips use the [Pexels License](https://www.pexels.com/license/). Attribution and source/license links are shown in the player. Posters are frames from the same footage. The media is bundled as application content; no endorsement by the depicted people is claimed.
+The Wikimedia clips are used under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) and identify the adaptations in the in-app metadata. The deadlift, two bodyweight clips, and both dumbbell clips use the [Pexels License](https://www.pexels.com/license/). Attribution and source/license links are shown in the player. Posters are frames from the same footage. The media is bundled as application content; no endorsement by the depicted people is claimed.
 
 Visual review verifies the depicted movement and framing, not professional coaching certification. Written guides remain visible independently of playback. A qualified trainer should review the finished catalog before public release.
 
@@ -33,7 +35,7 @@ Visual review verifies the depicted movement and framing, not professional coach
 
 ## Outstanding coverage
 
-All eight kettlebell exercises in the current program now have full-body demos. Reverse lunge, dead bug, glute bridge, cat-cow, breathing and walking still have written guides only. Do not alias a similar clip to those exercise IDs.
+All eight kettlebell exercises and both dumbbell exercises in the current library now have full-body demos. Reverse lunge, dead bug, glute bridge, cat-cow, breathing and walking still have written guides only. Do not alias a similar clip to those exercise IDs.
 
 The examined wger collection did not cover the prescribed kettlebell variants. GitHub rehosts of ExerciseDB material may contain files without reusable media rights; an open-source application license does not automatically license its video assets. Prefer a verifiable open media license for future additions, otherwise use a reviewed Pexels source or commissioned footage.
 
