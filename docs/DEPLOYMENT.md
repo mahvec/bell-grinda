@@ -61,6 +61,12 @@ Node version: 22
 
 The `vercel.json` rewrite returns the PWA shell for direct links such as `/workout`, so browser refresh and shared links keep working.
 
+### Installed PWA updates
+
+The PWA checks for new releases at startup, when it returns to the foreground, when connectivity returns, and hourly while visible and online. Once a release is ready, an **Update available** banner offers **Restart to update** or **Later**. Updates require an explicit restart and are deferred while a workout is active, paused, or awaiting its final review. Restarting preserves IndexedDB training records.
+
+For installations from before the update banner was added, close the installed app and all browser tabs for the same domain, then reopen online to allow the waiting service worker to activate. Do not clear site data to force an update: that also removes local workout history. Confirm that the new Vercel deployment is promoted to Production on the installed app's domain.
+
 Once the PWA has an API client, set its public API base URL to the Railway domain and update `CORS_ORIGIN` on Railway to the Vercel production URL. Do not put `DATABASE_URL` or other server credentials into Vercel variables.
 
 ## Before opening accounts to users
