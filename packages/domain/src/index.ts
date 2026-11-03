@@ -84,7 +84,7 @@ export type ExercisePrescription = z.infer<typeof exercisePrescriptionSchema>;
 
 export const exerciseMediaSchema = z.object({
   exerciseId: z.string(),
-  source: z.enum(["pexels", "wger", "wikimedia"]),
+  source: z.enum(["pexels", "wger", "wikimedia", "youtube", "vimeo"]),
   sourceId: z.string(),
   sourcePageUrl: z.string().url(),
   creator: z.string().min(1),
@@ -93,8 +93,8 @@ export const exerciseMediaSchema = z.object({
   videoUrl: z.union([z.string().url(), z.string().regex(/^\/media\/[a-z0-9-]+\.mp4$/)]),
   posterUrl: z.union([z.string().url(), z.string().regex(/^\/media\/[a-z0-9-]+\.webp$/)]).optional(),
   format: z.literal("live-action"),
-  framing: z.literal("full-body"),
-  durationSeconds: z.number().int().positive(),
+  framing: z.enum(["full-body", "instructional"]),
+  durationSeconds: z.number().int().positive().optional(),
   reviewedAt: z.string().datetime(),
   reviewNote: z.string().min(1),
   coachingNote: z.string().min(1).optional()

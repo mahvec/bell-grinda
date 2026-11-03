@@ -63,4 +63,12 @@ describe("program generation", () => {
     expect(workout.reasonCodes).toEqual(expect.arrayContaining(["LOWER_BODY_VOLUME_REDUCED", "TIME_CAPPED"]));
     expect(workout.exercises.find((item) => item.id === "goblet-squat")?.note).toContain("soreness");
   });
+  it("selects from the mapped eligible pool only after exercise-specific load approval", () => {
+    const now = "2026-10-01T00:00:00.000Z";
+    const mappedProfile: UserProfile = { ...profile("advanced_novice"), phase: 2, equipmentItems: [{ id: "kb-8", equipmentType: "kettlebell", weightKg: 8, quantity: 1, active: true, createdAt: now, updatedAt: now }], exerciseWorkingLoadsKg: { "kb-rdl": 8 } };
+    const workout = generateProgramWorkout(new Date("2026-10-23T09:00:00.000Z"), green, mappedProfile);
+    expect(workout.exercises.map((item) => item.id)).toContain("kb-rdl");
+    expect(workout.exercises.map((item) => item.id)).not.toContain("kb-deadlift");
+    expect(workout.reasonCodes).toEqual(expect.arrayContaining(["ELIGIBLE_POOL_FILTERED", "SAFETY_FILTERED", "READINESS_ACTIVITY_FILTERED", "MAPPED_EXERCISE_SELECTED", "EQUIPMENT_LOADS_VALIDATED"]));
+  });
 });

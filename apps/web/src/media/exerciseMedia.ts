@@ -10,6 +10,17 @@ const commonsLicense = {
   reviewedAt: "2026-10-18T20:30:00.000Z"
 };
 
+const youtubeTerms = {
+  source: "youtube" as const,
+  licenseName: "YouTube Terms of Service",
+  licenseUrl: "https://www.youtube.com/t/terms",
+  format: "live-action" as const,
+  framing: "instructional" as const,
+  reviewedAt: "2026-11-03T12:00:00.000Z"
+};
+
+const youtubeEmbed = (id: string, start?: number) => `https://www.youtube-nocookie.com/embed/${id}${start ? `?start=${start}` : ""}`;
+
 const records = [
   {
     exerciseId: "db-sumo-squat", source: "pexels", sourceId: "35585592",
@@ -96,6 +107,141 @@ const records = [
     videoUrl: "/media/clean-press-commons.mp4", posterUrl: "/media/clean-press-commons.webp", durationSeconds: 32,
     reviewNote: "Live-action floor-to-clean-to-press sequence used for the prescribed complex. The athlete and bell stay fully visible. Adapted by trimming and removing audio; no crop.",
     coachingNote: "Pause in the deadlift position before the clean, following the written sequence below the video."
+  },
+  {
+    ...youtubeTerms, exerciseId: "kb-halo", sourceId: "Sci3lijQBmk",
+    sourcePageUrl: "https://www.youtube.com/watch?v=Sci3lijQBmk", creator: "Coach Britt",
+    videoUrl: youtubeEmbed("Sci3lijQBmk"),
+    reviewNote: "Exact kettlebell halo tutorial with a step-by-step technique breakdown and common mistakes. Streamed through the publisher-controlled YouTube embed."
+  },
+  {
+    ...youtubeTerms, exerciseId: "kb-thruster", sourceId: "0qKCxLjr7xg",
+    sourcePageUrl: "https://www.youtube.com/watch?v=0qKCxLjr7xg", creator: "Lebe Stark",
+    videoUrl: youtubeEmbed("0qKCxLjr7xg"),
+    reviewNote: "Exact kettlebell thruster tutorial covering the squat, leg drive, and overhead press. Streamed through the publisher-controlled YouTube embed."
+  },
+  {
+    ...youtubeTerms, exerciseId: "kb-single-leg-clean", sourceId: "3sXVbAkrc24",
+    sourcePageUrl: "https://www.youtube.com/watch?v=3sXVbAkrc24", creator: "Greg Brookes",
+    videoUrl: youtubeEmbed("3sXVbAkrc24"),
+    reviewNote: "Exact single-leg kettlebell clean demonstration identified as an advanced balance, power, and coordination movement.",
+    coachingNote: "This is an advanced variation. Master the regular clean and a supported single-leg hinge before practising it."
+  },
+  {
+    ...youtubeTerms, exerciseId: "kb-biceps-curl", sourceId: "Bk22u7e6G8E",
+    sourcePageUrl: "https://www.youtube.com/watch?v=Bk22u7e6G8E", creator: "Travis Tarrant",
+    videoUrl: youtubeEmbed("Bk22u7e6G8E"),
+    reviewNote: "Exact kettlebell biceps curl tutorial showing a controlled two-hand horn grip.",
+    coachingNote: "The video shows the two-hand version. For a single-arm curl, keep the same still upper arm and straight-wrist control."
+  },
+  {
+    ...youtubeTerms, exerciseId: "kb-hammer-curl", sourceId: "KLvGXRo56iQ",
+    sourcePageUrl: "https://www.youtube.com/watch?v=KLvGXRo56iQ", creator: "BarBend exercise guide",
+    videoUrl: youtubeEmbed("KLvGXRo56iQ"),
+    reviewNote: "Exact kettlebell hammer-curl demonstration selected by the linked exercise guide.",
+    coachingNote: "Use a much lighter bell than your normal curl; the hanging load increases the demand on your grip and wrist."
+  },
+  {
+    ...youtubeTerms, exerciseId: "zottman-curl", sourceId: "FSGDM9-dZ9w",
+    sourcePageUrl: "https://www.youtube.com/watch?v=FSGDM9-dZ9w", creator: "Bodybuilding.com",
+    videoUrl: youtubeEmbed("FSGDM9-dZ9w"),
+    reviewNote: "Exact Zottman curl tutorial showing the supinated lift, top rotation, and pronated lowering phase.",
+    coachingNote: "The tutorial uses dumbbells. Only use kettlebells when their handles allow the same smooth rotation with straight wrists."
+  },
+  {
+    ...youtubeTerms, exerciseId: "kb-russian-twist", sourceId: "PkGPokybYaU",
+    sourcePageUrl: "https://www.youtube.com/watch?v=PkGPokybYaU", creator: "Live Lean TV Daily Exercises",
+    videoUrl: youtubeEmbed("PkGPokybYaU"),
+    reviewNote: "Exact kettlebell Russian twist demonstration with setup and controlled side-to-side movement.",
+    coachingNote: "BellGrinda defaults to heels down. Lift the feet only after you can keep a long, controlled spine."
+  },
+  {
+    ...youtubeTerms, exerciseId: "kb-windmill", sourceId: "1N1Qs9FO4GU",
+    sourcePageUrl: "https://www.youtube.com/watch?v=1N1Qs9FO4GU", creator: "Zack Henderson",
+    videoUrl: youtubeEmbed("1N1Qs9FO4GU"),
+    reviewNote: "Exact kettlebell windmill tutorial covering unloaded, kneeling, bottom-loaded, and overhead progressions.",
+    coachingNote: "Start with the unloaded or bottom-loaded progression shown before putting a bell overhead."
+  },
+  {
+    ...youtubeTerms, exerciseId: "kb-side-bend", sourceId: "3AASbmPEtYE#47",
+    sourcePageUrl: "https://www.youtube.com/watch?v=3AASbmPEtYE&t=47s", creator: "Ryoji Yoshikawa",
+    videoUrl: youtubeEmbed("3AASbmPEtYE", 47),
+    reviewNote: "The linked chapter demonstrates the kettlebell side bend as part of a kettlebell mobility tutorial.",
+    coachingNote: "This hosted tutorial is in Japanese; follow BellGrinda's English written cues and use a small, pain-free range."
+  },
+  {
+    ...youtubeTerms, exerciseId: "kb-figure-eight", sourceId: "mxDvhrMxuus",
+    sourcePageUrl: "https://www.youtube.com/watch?v=mxDvhrMxuus", creator: "Coach Britt",
+    videoUrl: youtubeEmbed("mxDvhrMxuus"),
+    reviewNote: "Exact kettlebell figure-8 tutorial with a beginner step-by-step handoff breakdown."
+  },
+  {
+    ...youtubeTerms, exerciseId: "kb-rotational-swing", sourceId: "sBbWDKYMwpY",
+    sourcePageUrl: "https://www.youtube.com/watch?v=sBbWDKYMwpY", creator: "Dr. John Rusin exercise guide",
+    videoUrl: youtubeEmbed("sBbWDKYMwpY"),
+    reviewNote: "Exact two-hand rotational kettlebell swing demonstration selected by the linked exercise guide.",
+    coachingNote: "Treat this as an advanced swing variation. The hips and feet pivot together; never twist through a planted knee."
+  },
+  {
+    ...youtubeTerms, exerciseId: "kb-hip-shift", sourceId: "3AASbmPEtYE#337",
+    sourcePageUrl: "https://www.youtube.com/watch?v=3AASbmPEtYE&t=337s", creator: "Ryoji Yoshikawa",
+    videoUrl: youtubeEmbed("3AASbmPEtYE", 337),
+    reviewNote: "The linked chapter demonstrates the kettlebell hip shift as a controlled mobility movement.",
+    coachingNote: "This hosted tutorial is in Japanese; use the written English cues and treat the bell as a light counterbalance."
+  },
+  {
+    ...youtubeTerms, exerciseId: "kb-clean-rotational-press", sourceId: "ppBgsm8s-IU",
+    sourcePageUrl: "https://www.youtube.com/watch?v=ppBgsm8s-IU", creator: "Functional Bodybuilding",
+    videoUrl: youtubeEmbed("ppBgsm8s-IU"),
+    reviewNote: "Exact single-kettlebell clean-to-rotational-press demonstration.",
+    coachingNote: "Advanced sequence: learn the clean, press, and unloaded foot pivot separately before combining them."
+  },
+  {
+    ...youtubeTerms, exerciseId: "kb-suitcase-deadlift", sourceId: "15p3Jv4eqaY",
+    sourcePageUrl: "https://www.youtube.com/watch?v=15p3Jv4eqaY", creator: "BarBend exercise guide",
+    videoUrl: youtubeEmbed("15p3Jv4eqaY"),
+    reviewNote: "Exact suitcase deadlift guide showing the bell outside one foot and an upright, level finish."
+  },
+  {
+    ...youtubeTerms, exerciseId: "kb-woodchop", sourceId: "WaBz7DIcI5w",
+    sourcePageUrl: "https://www.youtube.com/watch?v=WaBz7DIcI5w", creator: "Red Dot Fitness",
+    videoUrl: youtubeEmbed("WaBz7DIcI5w"),
+    reviewNote: "Exact standing kettlebell wood-chop demonstration with diagonal path, hip extension, and rotation cues.",
+    coachingNote: "The video shows the standing version. Master it before using the half-kneeling progression described in the written guide."
+  },
+  {
+    ...youtubeTerms, exerciseId: "kb-rdl", sourceId: "Uc5rP5xs7qQ",
+    sourcePageUrl: "https://www.youtube.com/watch?v=Uc5rP5xs7qQ", creator: "Of The Lion Fitness",
+    videoUrl: youtubeEmbed("Uc5rP5xs7qQ"),
+    reviewNote: "Exact kettlebell Romanian deadlift tutorial covering setup and hip-hinge execution."
+  },
+  {
+    ...youtubeTerms, exerciseId: "kb-single-leg-rdl", sourceId: "s32cCgmRV3I",
+    sourcePageUrl: "https://www.youtube.com/watch?v=s32cCgmRV3I", creator: "Movement Physio",
+    videoUrl: youtubeEmbed("s32cCgmRV3I"),
+    reviewNote: "Exact single-leg kettlebell Romanian deadlift demonstration.",
+    coachingNote: "Use a wall or chair for balance while learning, even if the demonstration is unsupported."
+  },
+  {
+    exerciseId: "kb-kickstand-deadlift", source: "vimeo", sourceId: "458926077",
+    sourcePageUrl: "https://vimeo.com/458926077", creator: "Nathalie Lennon",
+    licenseName: "Vimeo Terms of Service", licenseUrl: "https://vimeo.com/terms",
+    videoUrl: "https://player.vimeo.com/video/458926077", format: "live-action", framing: "instructional",
+    reviewedAt: "2026-11-03T12:00:00.000Z",
+    reviewNote: "Exact B-stance kettlebell RDL demonstration hosted by the publisher-controlled Vimeo player."
+  },
+  {
+    ...youtubeTerms, exerciseId: "kb-good-morning", sourceId: "A42LMU4iQWM",
+    sourcePageUrl: "https://www.youtube.com/watch?v=A42LMU4iQWM", creator: "OriGym",
+    videoUrl: youtubeEmbed("A42LMU4iQWM"),
+    reviewNote: "Exact kettlebell good-morning tutorial with setup, controlled hinge, and return cues."
+  },
+  {
+    ...youtubeTerms, exerciseId: "kb-glute-bridge", sourceId: "5jiA8s_mfFI",
+    sourcePageUrl: "https://www.youtube.com/watch?v=5jiA8s_mfFI", creator: "Pro Kettlebell",
+    videoUrl: youtubeEmbed("5jiA8s_mfFI"),
+    reviewNote: "Exact loaded single-leg kettlebell glute-bridge tutorial with bell placement and hip-extension cues.",
+    coachingNote: "The video shows the harder single-leg option. Begin with both feet planted and progress only when the pelvis stays level."
   }
 ] satisfies ExerciseMedia[];
 

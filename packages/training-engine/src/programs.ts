@@ -1,4 +1,5 @@
 import { getAvailableKettlebellLoads, type ExercisePrescription, type GeneratedWorkout, type ReadinessResult, type TrainingLevel, type UserProfile } from "@bellgrinda/domain";
+import { getEligibleMappedExercises } from "./exercise-mapping";
 
 type Day = { title: string; focus: string; exercises: ExercisePrescription[] };
 type Program = { label: string; version: string; rounds: number; estimatedMinutes: number; days: Record<number, Day> };
@@ -101,7 +102,17 @@ export function generateProgramWorkout(date: Date, readiness: ReadinessResult, p
   const planned = definition.days[day]!;
   const useActivation = !isRed && football;
   const lowerBodySoreness = readiness.reasonCodes.includes("READINESS_LOWER_BODY_SORENESS") || readiness.reasonCodes.includes("READINESS_MODERATE_SORENESS");
-  const withApprovedLoads = planned.exercises.map((item) => {
+  const eligibleMapped = getEligibleMappedExercises(profile, readiness, day).filter(({ mapping }) => mapping.replaces.some((exerciseId) => planned.exercises.some((item) => item.id === exerciseId)));
+  const selectedMapped = eligibleMapped.length ? eligibleMapped[Number(isoDate.replaceAll("-", "")) % eligibleMapped.length] : undefined;
+  let mappedReplacementUsed = false;
+  const mappedExercises = selectedMapped ? planned.exercises.map((item) => {
+    if (!mappedReplacementUsed && selectedMapped.mapping.replaces.includes(item.id)) {
+      mappedReplacementUsed = true;
+      return selectedMapped.exercise;
+    }
+    return item;
+  }) : planned.exercises;
+  const withApprovedLoads = mappedExercises.map((item) => {
     if (item.loadKg === null) return item;
     const explicitWorkingLoad = profile.exerciseWorkingLoadsKg?.[item.id];
     const approved = explicitWorkingLoad ?? item.loadKg;
@@ -123,7 +134,7 @@ export function generateProgramWorkout(date: Date, readiness: ReadinessResult, p
     estimatedMinutes,
     readiness,
     exercises,
-    reasonCodes: [`LEVEL_${profile.trainingLevel.toUpperCase()}`, `PHASE_${profile.phase}`, `READINESS_${readiness.status.toUpperCase()}`, ...(reduced ? ["VOLUME_REDUCED"] : []), ...(useActivation ? ["FOOTBALL_ACTIVATION"] : []), ...(lowerBodySoreness ? ["LOWER_BODY_VOLUME_REDUCED"] : []), ...(rounds < baseRounds ? ["TIME_CAPPED"] : []), "EQUIPMENT_LOADS_VALIDATED"],
+    reasonCodes: [`LEVEL_${profile.trainingLevel.toUpperCase()}`, `PHASE_${profile.phase}`, `READINESS_${readiness.status.toUpperCase()}`, "ELIGIBLE_POOL_FILTERED", "SAFETY_FILTERED", "READINESS_ACTIVITY_FILTERED", ...(selectedMapped && !isRed && !useActivation ? ["MAPPED_EXERCISE_SELECTED"] : []), ...(reduced ? ["VOLUME_REDUCED"] : []), ...(useActivation ? ["FOOTBALL_ACTIVATION"] : []), ...(lowerBodySoreness ? ["LOWER_BODY_VOLUME_REDUCED"] : []), ...(rounds < baseRounds ? ["TIME_CAPPED"] : []), "EQUIPMENT_LOADS_VALIDATED"],
     engineVersion: definition.version
   };
 }

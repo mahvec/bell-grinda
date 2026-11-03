@@ -1,4 +1,4 @@
-import { generateNoviceWorkout } from "@bellgrinda/training-engine";
+import { generateNoviceWorkout, supplementalExerciseMappings } from "@bellgrinda/training-engine";
 import type { ExercisePrescription } from "@bellgrinda/domain";
 
 export const movementCues: Record<string, string[]> = {
@@ -38,10 +38,78 @@ export const movementCues: Record<string, string[]> = {
   ,"advanced-complex": ["Complete the approved sequence without rushing transitions.", "Own each rack, squat, and overhead position before moving on.", "End the set if breathing or grip prevents clean technique."]
   ,"push-up-mechanical-drop": ["Begin with the hardest prescribed push-up variation.", "Move to the easier position only when clean reps stop.", "Keep the same body line and full controlled range throughout."]
   ,"grandmaster-complex": ["Treat the sequence as skilled practice, not a race.", "Use crisp hinges and stable rack and overhead positions.", "Stop before speed, breathing, or grip compromises a transition."]
+  ,"kb-halo": ["Hold a light bell by the horns in front of your chest.", "Circle it slowly around your head without pushing your head forward.", "Keep your ribs down and reverse direction after each set."]
+  ,"kb-thruster": ["Start with the bell secure at your chest or in the rack position.", "Squat with your whole foot grounded, then drive up smoothly.", "Use the leg drive to press overhead; finish without leaning back."]
+  ,"kb-single-leg-clean": ["Master the regular clean and single-leg hinge before trying this variation.", "Balance on one leg, hinge with a long spine, and keep the bell close.", "Drive through the standing foot and guide the bell softly into the rack. Stop if balance breaks down."]
+  ,"kb-biceps-curl": ["Stand tall and hold the bell by the horns or use one hand on the handle.", "Keep your elbows close to your ribs as you curl.", "Lower slowly without leaning back or swinging the bell."]
+  ,"kb-hammer-curl": ["Hold the bell with a neutral grip and begin with a very light load.", "Keep the upper arm still while bending the elbow.", "Pause under control, then lower without letting the wrist collapse."]
+  ,"zottman-curl": ["Use light kettlebells or dumbbells and curl with palms facing up.", "At the top, rotate the forearms until the palms face down.", "Lower slowly with straight wrists, then reset the grip at the bottom."]
+  ,"kb-russian-twist": ["Sit tall with knees bent and begin with your heels on the floor.", "Hold a light bell close, brace, and lean back only as far as you can control.", "Rotate the ribcage slowly from side to side; stop if your lower back feels strained."]
+  ,"kb-windmill": ["Learn the unloaded windmill before holding a bell overhead.", "Turn the feet slightly, keep the loaded shoulder stacked, and push the hip away.", "Hinge within your available range while watching the bell; return without twisting the knee."]
+  ,"kb-side-bend": ["Hold a light bell at one side and stand evenly through both feet.", "Slide the bell a short distance down the outside of the leg without leaning forward.", "Use the opposite side of your trunk to return tall; do not chase extra range."]
+  ,"kb-figure-eight": ["Use a light bell and settle into a shallow squat with a long spine.", "Pass the handle behind one leg to the other hand, then circle around the other leg.", "Move slowly until every handoff is secure; keep the bell away from your knees."]
+  ,"kb-rotational-swing": ["Master the two-hand swing before adding rotation or a pivot.", "Drive the bell with the hips and let the feet pivot together with the torso.", "Keep the bell controlled and stop if the knees or lower back twist independently."]
+  ,"kb-hip-shift": ["Hold a light bell as a counterbalance and take a comfortable wide stance.", "Shift the hips toward one side while keeping both feet grounded.", "Move only through a pain-free range and return through the centre before changing sides."]
+  ,"kb-clean-rotational-press": ["Master the clean, press, and unloaded pivot separately first.", "Clean the bell to a stable rack, then turn the hips and feet together.", "Press along the new direction without twisting through the knee or lower back."]
+  ,"kb-suitcase-deadlift": ["Set the bell outside one foot and brace before reaching down.", "Hinge and bend the knees while keeping shoulders and hips level.", "Stand without leaning away from the bell, then lower it to the same spot with control."]
+  ,"kb-woodchop": ["Use a light bell and practise the diagonal path before adding speed.", "Move the shoulders, ribs, hips, and pivoting foot together across the body.", "Control the return. Use the standing version before progressing to half-kneeling."]
+  ,"kb-rdl": ["Hold the bell close and soften your knees.", "Push the hips back with a long spine until the hamstrings limit the hinge.", "Drive the hips forward to stand; do not reach the bell toward the floor by rounding."]
+  ,"kb-single-leg-rdl": ["Stand on one leg with a soft knee and use support while learning.", "Reach the free leg back as the torso hinges, keeping the hips square.", "Press through the standing foot to return; shorten the range when balance changes."]
+  ,"kb-kickstand-deadlift": ["Place most of your weight on the front foot and use the rear toes as a kickstand.", "Keep the hips square and hinge over the working leg.", "Stand by driving through the front foot; the rear leg assists balance, not the lift."]
+  ,"kb-good-morning": ["Secure a light bell at your chest or upper back position shown in the guide.", "Soften the knees, brace, and push the hips back.", "Stop at a controlled hamstring stretch and squeeze the glutes to stand tall."]
+  ,"kb-glute-bridge": ["Lie down, place the bell securely across the hips, and keep both hands on it.", "Drive through the feet and lift until the hips are straight without arching the back.", "Lower slowly. Earn the single-leg variation first and keep the pelvis level when progressing."]
 };
 
+export type ExerciseMuscles = { primary: string[]; supporting: string[] };
+
+export const exerciseMuscles: Record<string, ExerciseMuscles> = {
+  "db-sumo-squat": { primary: ["Quadriceps", "Glutes", "Inner thighs"], supporting: ["Hamstrings", "Core"] },
+  "db-bulgarian-split-squat": { primary: ["Quadriceps", "Glutes"], supporting: ["Hamstrings", "Inner thighs", "Core"] },
+  "goblet-squat": { primary: ["Quadriceps", "Glutes"], supporting: ["Inner thighs", "Hamstrings", "Core", "Upper back"] },
+  "one-arm-row": { primary: ["Lats", "Upper back"], supporting: ["Biceps", "Rear shoulders", "Forearms", "Core"] },
+  "push-up": { primary: ["Chest", "Triceps"], supporting: ["Front shoulders", "Core"] },
+  "kb-deadlift": { primary: ["Glutes", "Hamstrings"], supporting: ["Quadriceps", "Lower back", "Core", "Forearms"] },
+  "skipping": { primary: ["Calves", "Cardiovascular system"], supporting: ["Quadriceps", "Hamstrings", "Shoulders", "Core"] },
+  "reverse-lunge": { primary: ["Quadriceps", "Glutes"], supporting: ["Hamstrings", "Calves", "Core"] },
+  "kb-swing": { primary: ["Glutes", "Hamstrings"], supporting: ["Core", "Lats", "Lower back", "Forearms"] },
+  "kb-clean": { primary: ["Glutes", "Hamstrings", "Upper back"], supporting: ["Quadriceps", "Shoulders", "Biceps", "Forearms", "Core"] },
+  "overhead-press": { primary: ["Shoulders", "Triceps"], supporting: ["Upper chest", "Core", "Upper back"] },
+  "dead-bug": { primary: ["Deep core", "Abdominals"], supporting: ["Hip flexors"] },
+  "clean-press": { primary: ["Glutes", "Hamstrings", "Shoulders", "Triceps"], supporting: ["Quadriceps", "Upper back", "Core", "Forearms"] },
+  "glute-bridge": { primary: ["Glutes"], supporting: ["Hamstrings", "Deep core"] },
+  "mini-complex": { primary: ["Glutes", "Hamstrings", "Shoulders"], supporting: ["Quadriceps", "Upper back", "Triceps", "Core", "Forearms"] },
+  "breathing": { primary: ["Diaphragm", "Deep core"], supporting: ["Rib-cage muscles", "Pelvic floor"] },
+  "cat-cow": { primary: ["Spinal mobility", "Abdominals"], supporting: ["Upper back", "Lower back", "Shoulders"] },
+  "easy-walk": { primary: ["Quadriceps", "Glutes", "Calves"], supporting: ["Hamstrings", "Core", "Cardiovascular system"] },
+  "kb-halo": { primary: ["Shoulders", "Upper back"], supporting: ["Triceps", "Forearms", "Core"] },
+  "kb-thruster": { primary: ["Quadriceps", "Glutes", "Shoulders"], supporting: ["Hamstrings", "Triceps", "Upper chest", "Core"] },
+  "kb-single-leg-clean": { primary: ["Glutes", "Hamstrings", "Upper back"], supporting: ["Quadriceps", "Calves", "Shoulders", "Forearms", "Core"] },
+  "kb-biceps-curl": { primary: ["Biceps"], supporting: ["Forearms", "Grip"] },
+  "kb-hammer-curl": { primary: ["Brachialis", "Biceps"], supporting: ["Brachioradialis", "Forearms", "Grip"] },
+  "zottman-curl": { primary: ["Biceps", "Forearms"], supporting: ["Brachialis", "Brachioradialis", "Grip"] },
+  "kb-russian-twist": { primary: ["Obliques", "Abdominals"], supporting: ["Deep core", "Hip flexors"] },
+  "kb-windmill": { primary: ["Obliques", "Glutes", "Shoulders"], supporting: ["Hamstrings", "Upper back", "Deep core"] },
+  "kb-side-bend": { primary: ["Obliques"], supporting: ["Deep core", "Grip"] },
+  "kb-figure-eight": { primary: ["Obliques", "Glutes", "Quadriceps"], supporting: ["Hamstrings", "Shoulders", "Forearms", "Core"] },
+  "kb-rotational-swing": { primary: ["Glutes", "Hamstrings", "Obliques"], supporting: ["Quadriceps", "Lats", "Shoulders", "Forearms", "Core"] },
+  "kb-hip-shift": { primary: ["Inner thighs", "Glutes", "Hip mobility"], supporting: ["Hamstrings", "Quadriceps", "Core"] },
+  "kb-clean-rotational-press": { primary: ["Glutes", "Obliques", "Shoulders"], supporting: ["Hamstrings", "Quadriceps", "Triceps", "Upper back", "Core"] },
+  "kb-suitcase-deadlift": { primary: ["Glutes", "Hamstrings", "Quadriceps"], supporting: ["Obliques", "Lower back", "Forearms", "Grip"] },
+  "kb-woodchop": { primary: ["Obliques", "Abdominals"], supporting: ["Glutes", "Shoulders", "Upper back", "Core"] },
+  "kb-rdl": { primary: ["Hamstrings", "Glutes"], supporting: ["Lower back", "Core", "Forearms"] },
+  "kb-single-leg-rdl": { primary: ["Hamstrings", "Glutes"], supporting: ["Calves", "Inner thighs", "Lower back", "Core"] },
+  "kb-kickstand-deadlift": { primary: ["Hamstrings", "Glutes"], supporting: ["Quadriceps", "Inner thighs", "Lower back", "Core"] },
+  "kb-good-morning": { primary: ["Hamstrings", "Glutes"], supporting: ["Lower back", "Deep core", "Upper back"] },
+  "kb-glute-bridge": { primary: ["Glutes"], supporting: ["Hamstrings", "Deep core"] }
+};
+
+export function getExerciseMuscles(exercise: ExercisePrescription): ExerciseMuscles {
+  const baseId = exercise.id.endsWith("-substitute") ? exerciseCatalog.find((entry) => entry.name === exercise.name)?.id : exercise.id;
+  return exerciseMuscles[baseId ?? exercise.id] ?? { primary: ["Full body"], supporting: [] };
+}
+
 const ready = { score: 100, status: "green" as const, reasonCodes: [], guidance: "" };
-export type ExerciseEquipment = "kettlebell" | "dumbbell" | "bodyweight" | "skipping_rope";
+export type ExerciseEquipment = "kettlebell" | "dumbbell" | "kettlebell_or_dumbbell" | "bodyweight" | "skipping_rope";
 export type CatalogExercise = ExercisePrescription & { equipmentType: ExerciseEquipment };
 
 const catalog = new Map<string, ExercisePrescription>();
@@ -70,12 +138,15 @@ const dumbbellExercises: CatalogExercise[] = [
   }
 ];
 
+export const supplementalExercises: CatalogExercise[] = supplementalExerciseMappings.map(({ exercise, equipmentType }) => ({ ...exercise, equipmentType }));
+
 export const exerciseCatalog: CatalogExercise[] = [
   ...[...catalog.values()].map((exercise): CatalogExercise => ({
     ...exercise,
     equipmentType: exercise.id === "skipping" ? "skipping_rope" : exercise.loadKg !== null ? "kettlebell" : "bodyweight"
   })),
-  ...dumbbellExercises
+  ...dumbbellExercises,
+  ...supplementalExercises
 ];
 
 export function getMovementCues(exercise: ExercisePrescription) {

@@ -5,3 +5,4 @@ export { applyProgressionDecisions, evaluateProgression, progressionEngineVersio
 export { createPerformanceSnapshot, detectSessionPersonalRecords } from "./analytics";
 export { generateProgramWorkout } from "./programs";
 export { evaluateLevelReadiness, createLevelTrial, evaluateLevelTrial } from "./level-review";
+export { getEligibleMappedExercises, getSupplementalExerciseMapping, supplementalExerciseMappings, type ExerciseMapping, type EligibleMappedExercise, type MappedEquipment } from "./exercise-mapping";
