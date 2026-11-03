@@ -4,34 +4,55 @@ export const readinessStatusSchema = z.enum(["green", "yellow", "red"]);
 export type ReadinessStatus = z.infer<typeof readinessStatusSchema>;
 
 export const energySchema = z.enum(["high", "normal", "low", "very_low"]);
-export const sleepSchema = z.enum(["good", "okay", "poor", "very_poor"]);
+export const sleepSchema = z.enum(["excellent", "good", "okay", "poor", "very_poor"]);
 export const sorenessSchema = z.enum(["none", "mild", "moderate", "severe"]);
 export const painSchema = z.enum(["none", "mild", "moderate", "severe"]);
 export const painSeveritySchema = z.enum(["mild", "moderate", "severe"]);
 export type PainSeverity = z.infer<typeof painSeveritySchema>;
-export const bodyLocationSchema = z.enum(["lower_back", "shoulder", "elbow", "wrist", "hip", "knee", "ankle", "other"]);
+export const bodyLocationSchema = z.enum(["neck", "chest", "upper_back", "lower_back", "shoulder", "elbow", "wrist", "hip", "quadriceps", "hamstring", "knee", "calf", "ankle", "other"]);
 export type BodyLocation = z.infer<typeof bodyLocationSchema>;
 export const footballSchema = z.enum(["none", "recreational", "match", "high_intensity", "competition"]);
+export const motivationSchema = z.enum(["low", "normal", "good", "very_motivated"]);
 
 export const readinessInputSchema = z.object({
   energy: energySchema,
   sleep: sleepSchema,
   soreness: sorenessSchema,
   pain: painSchema,
-  football: footballSchema
+  football: footballSchema,
+  sorenessLocations: z.array(bodyLocationSchema).default([]),
+  painLocations: z.array(bodyLocationSchema).default([]),
+  motivation: motivationSchema.optional(),
+  availableMinutes: z.union([z.literal(20), z.literal(30), z.literal(40), z.literal(45)]).default(40)
 });
 export type ReadinessInput = z.infer<typeof readinessInputSchema>;
+export type ReadinessInputSubmission = z.input<typeof readinessInputSchema>;
 
 export const readinessResultSchema = z.object({
   score: z.number().int().min(0).max(100),
   status: readinessStatusSchema,
   reasonCodes: z.array(z.string()),
-  guidance: z.string()
+  guidance: z.string(),
+  input: readinessInputSchema.optional()
 });
 export type ReadinessResult = z.infer<typeof readinessResultSchema>;
+export const dailyReadinessRecordSchema = z.object({ id: z.string(), date: z.string(), input: readinessInputSchema, result: readinessResultSchema, createdAt: z.string() });
+export type DailyReadinessRecord = z.infer<typeof dailyReadinessRecordSchema>;
 
 export const equipmentSchema = z.enum(["kettlebell_12", "dumbbell", "mat", "chair", "skipping_rope"]);
 export type Equipment = z.infer<typeof equipmentSchema>;
+
+export const userEquipmentTypeSchema = z.enum(["kettlebell", "dumbbell", "rope", "mat", "bench"]);
+export const userEquipmentSchema = z.object({
+  id: z.string(),
+  equipmentType: userEquipmentTypeSchema,
+  weightKg: z.number().positive().max(200).optional(),
+  quantity: z.number().int().positive().max(20),
+  active: z.boolean(),
+  createdAt: z.string(),
+  updatedAt: z.string()
+});
+export type UserEquipment = z.infer<typeof userEquipmentSchema>;
 
 export const trainingLevelSchema = z.enum(["novice", "advanced_novice", "intermediate", "advanced", "grandmaster"]);
 export type TrainingLevel = z.infer<typeof trainingLevelSchema>;
@@ -42,6 +63,8 @@ export const userProfileSchema = z.object({
   trainingLevel: trainingLevelSchema,
   phase: z.number().int().min(1).max(3),
   equipment: z.array(equipmentSchema),
+  equipmentItems: z.array(userEquipmentSchema).optional(),
+  exerciseWorkingLoadsKg: z.record(z.string(), z.number().positive().max(200)).optional(),
   defaultKettlebellKg: z.number().positive().max(200).optional(),
   defaultDumbbellKg: z.number().positive().max(200).optional(),
   createdAt: z.string()
@@ -88,7 +111,8 @@ export const generatedWorkoutSchema = z.object({
   readiness: readinessResultSchema,
   exercises: z.array(exercisePrescriptionSchema),
   reasonCodes: z.array(z.string()),
-  engineVersion: z.string()
+  engineVersion: z.string(),
+  levelTrial: z.object({ reviewId: z.string(), currentLevel: trainingLevelSchema, proposedLevel: trainingLevelSchema }).optional()
 });
 export type GeneratedWorkout = z.infer<typeof generatedWorkoutSchema>;
 
@@ -238,6 +262,75 @@ export const performanceSnapshotSchema = z.object({
   explanation: z.string()
 });
 export type PerformanceSnapshot = z.infer<typeof performanceSnapshotSchema>;
+
+export const levelReviewResultSchema = z.enum(["not_ready", "trial_approved", "passed", "failed"]);
+export const levelProgressionReviewSchema = z.object({
+  id: z.string(),
+  currentLevel: trainingLevelSchema,
+  proposedLevel: trainingLevelSchema,
+  requestedAt: z.string(),
+  recentAverageRpe: z.number().min(1).max(10).nullable(),
+  completionRate: z.number().min(0).max(100),
+  sessionsAnalyzed: z.number().int().min(0),
+  result: levelReviewResultSchema,
+  confidence: z.enum(["low", "medium", "high"]),
+  evidence: z.array(z.string()),
+  blockers: z.array(z.string()),
+  trialSessionId: z.string().nullable(),
+  createdAt: z.string()
+});
+export type LevelProgressionReview = z.infer<typeof levelProgressionReviewSchema>;
+
+export const levelHistoryEntrySchema = z.object({
+  id: z.string(),
+  previousLevel: trainingLevelSchema,
+  newLevel: trainingLevelSchema,
+  changedAt: z.string(),
+  reviewId: z.string().nullable(),
+  recentAverageRpe: z.number().min(1).max(10).nullable(),
+  reason: z.string(),
+  progressionType: z.enum(["scheduled", "early"])
+});
+export type LevelHistoryEntry = z.infer<typeof levelHistoryEntrySchema>;
+
+export const coachContextSchema = z.object({
+  currentTrainingLevel: trainingLevelSchema,
+  currentPhase: z.number().int().min(1).max(3),
+  readiness: readinessResultSchema.optional(),
+  availableEquipment: z.array(userEquipmentSchema),
+  todayWorkout: generatedWorkoutSchema.optional(),
+  recentSessions: z.array(z.object({ id: z.string(), date: z.string(), title: z.string(), status: z.string(), completionPercentage: z.number(), rpe: z.number().nullable() })).max(6),
+  safetyRestrictions: z.array(z.object({ exerciseId: z.string().nullable(), explanation: z.string() })).max(10),
+  performanceGrade: performanceSnapshotSchema.optional(),
+  recentAssessment: assessmentSchema.optional(),
+  levelReview: levelProgressionReviewSchema.optional()
+});
+export type CoachContext = z.infer<typeof coachContextSchema>;
+
+export const coachRequestSchema = z.object({
+  question: z.string().min(1).max(500),
+  context: coachContextSchema
+});
+export const coachResponseSchema = z.object({ answer: z.string().min(1), source: z.enum(["ai", "deterministic"]), uncertainty: z.boolean() });
+export type CoachResponse = z.infer<typeof coachResponseSchema>;
+
+export function getProfileEquipment(profile: UserProfile): UserEquipment[] {
+  if (profile.equipmentItems?.length) return profile.equipmentItems.filter((item) => item.active);
+  const now = profile.createdAt;
+  return profile.equipment.map((item) => ({
+    id: `legacy-${item}`,
+    equipmentType: item === "kettlebell_12" ? "kettlebell" as const : item === "skipping_rope" ? "rope" as const : item === "chair" ? "bench" as const : item,
+    ...(item === "kettlebell_12" ? { weightKg: profile.defaultKettlebellKg ?? 12 } : item === "dumbbell" ? { weightKg: profile.defaultDumbbellKg ?? 15 } : {}),
+    quantity: 1,
+    active: true,
+    createdAt: now,
+    updatedAt: now
+  }));
+}
+
+export function getAvailableKettlebellLoads(profile: UserProfile) {
+  return [...new Set(getProfileEquipment(profile).filter((item) => item.equipmentType === "kettlebell" && item.weightKg).map((item) => item.weightKg!))].sort((a, b) => a - b);
+}
 
 export const createSession = (workout: GeneratedWorkout, now = new Date()): WorkoutSession => ({
   id: crypto.randomUUID(),

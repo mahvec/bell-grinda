@@ -16,6 +16,10 @@ The usable Novice loop is implemented end to end:
 10. Record actual reps and loads for every set, review completed or partial sessions, add RPE and notes, explicitly abandon interrupted workouts, and inspect detailed finalized records in Activity.
 11. Evaluate finalized sessions with the versioned progression engine. Safety overrides ordinary progression; stable exposures can add reps or test an available load, repeated strain can regress work, three-exposure stagnation can flag a plateau, and combined recovery signals can trigger a seven-day deload. Decisions and reason codes are stored and applied to the next generated workout.
 12. Capture an optional baseline and biweekly assessments, detect comparable personal records from finalized set logs, calculate rolling performance scores with grade/trend confidence, and view score/category charts in Progress.
+13. Store multiple kettlebells by weight and quantity, validate prescriptions against owned equipment, and preserve exercise-specific working loads instead of automatically selecting the heaviest bell.
+14. Use expanded structured readiness inputs—including body regions and available time—to adjust volume, exercise targets, football load, and session duration deterministically.
+15. Explain workouts, progress, assessments, and level reviews through BellGrinda Coach. Cloud AI receives a minimal structured context and can never mutate safety, workout, grade, or progression state; reason-code explanations remain available offline.
+16. Request an early Novice or Advanced Novice level review after sufficient completed work, complete a controlled next-level trial, and confirm promotion only after the deterministic review passes. Every confirmed early level change is stored locally.
 
 ## Architecture now in place
 
@@ -46,7 +50,7 @@ The usable Novice loop is implemented end to end:
 ## Explicit boundaries
 
 - The sync API exists but is not yet connected to the PWA or deployed. Data is still local to the browser profile unless a client explicitly uses the API.
-- Profile displays saved settings and installation guidance; it is not yet a profile editor. Assessments and progress analytics are local-first and are not yet synchronized.
+- Profile and multi-kettlebell equipment are editable. Assessments, Coach context, level reviews, level history, and progress analytics remain local-first and are not yet synchronized independently of the profile/session sync payload.
 - The app provides training guidance, not medical diagnosis.
-- The current generator supports the Novice level only.
+- Program templates cover Novice through Grandmaster. Early review is intentionally limited to Novice → Advanced Novice and Advanced Novice → Intermediate; higher levels require deeper program evidence.
 - Exercise media is deliberately allowlisted after movement review. Unreviewed or merely similar footage is not shown; those exercises retain written cues while exact demonstrations are sourced or produced.

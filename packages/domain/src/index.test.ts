@@ -6,6 +6,7 @@ import {
   getSessionSkippedSets,
   generatedWorkoutSchema,
   readinessInputSchema,
+  userEquipmentSchema,
   workoutSessionSchema,
   type GeneratedWorkout
 } from "./index";
@@ -37,6 +38,11 @@ const workout: GeneratedWorkout = generatedWorkoutSchema.parse({
 });
 
 describe("domain contracts", () => {
+  it("stores multiple kettlebell weights and quantities", () => {
+    const items = [{ id: "12", equipmentType: "kettlebell", weightKg: 12, quantity: 2, active: true, createdAt: "2026-10-01", updatedAt: "2026-10-01" }, { id: "16", equipmentType: "kettlebell", weightKg: 16, quantity: 1, active: true, createdAt: "2026-10-01", updatedAt: "2026-10-01" }, { id: "20", equipmentType: "kettlebell", weightKg: 20, quantity: 1, active: true, createdAt: "2026-10-01", updatedAt: "2026-10-01" }];
+    expect(items.map((item) => userEquipmentSchema.parse(item))).toHaveLength(3);
+    expect(userEquipmentSchema.parse(items[0]).quantity).toBe(2);
+  });
   it("rejects incomplete readiness input", () => {
     expect(
       readinessInputSchema.safeParse({

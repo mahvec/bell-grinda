@@ -18,11 +18,15 @@ npm run build
 
 - mobile-first installable PWA with rust/sand/emerald styling, touch navigation, and route-level code splitting;
 - local onboarding and equipment profile;
+- multi-kettlebell inventory with weight, quantity, editing, and exercise-specific approved working loads;
 - deterministic Novice readiness and workout engine;
 - safety overrides for pain and football load;
 - persistent, resumable workout sessions in IndexedDB;
 - per-set actual reps and load logging, completion review with RPE and notes, and explicit partial or abandoned outcomes;
 - deterministic progression decisions for holds, rep increases, load trials, regressions, pain restrictions, plateaus, and recovery deloads;
+- structured daily check-ins for energy, sleep, soreness/body regions, pain/body regions, motivation, available time, and football load;
+- BellGrinda Coach with scoped training context, server-side AI explanations, and deterministic offline/failure fallbacks;
+- early Novice and Advanced Novice level reviews using recent RPE, completion, movement exposure, pain rules, and a controlled trial workout before user-confirmed promotion;
 - in-session pain reporting, approved substitutions, and severe-pain stop flow;
 - searchable 16-movement library with original written cues;
 - full-body live-action human demos for every kettlebell exercise, plus skipping and push-up videos, with source attribution, slow motion, opt-in offline saving, and written-cue fallback;

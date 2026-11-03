@@ -1,12 +1,13 @@
-import type { ReadinessInput, ReadinessResult } from "@bellgrinda/domain";
+import { readinessInputSchema, type ReadinessInputSubmission, type ReadinessResult } from "@bellgrinda/domain";
 
 const scoreMaps = {
   energy: { high: 100, normal: 80, low: 50, very_low: 25 },
-  sleep: { good: 100, okay: 80, poor: 50, very_poor: 25 },
+  sleep: { excellent: 100, good: 100, okay: 75, poor: 45, very_poor: 25 },
   soreness: { none: 100, mild: 80, moderate: 50, severe: 20 }
 } as const;
 
-export function classifyReadiness(input: ReadinessInput): ReadinessResult {
+export function classifyReadiness(rawInput: ReadinessInputSubmission): ReadinessResult {
+  const input = readinessInputSchema.parse(rawInput);
   const baseScore = Math.round(
     (scoreMaps.energy[input.energy] + scoreMaps.sleep[input.sleep] + scoreMaps.soreness[input.soreness]) / 3
   );
@@ -17,7 +18,8 @@ export function classifyReadiness(input: ReadinessInput): ReadinessResult {
       score: Math.min(baseScore, 30),
       status: "red",
       reasonCodes: ["SAFETY_SEVERE_PAIN"],
-      guidance: "Do not train through severe pain. Stop and consider professional evaluation."
+      guidance: "Do not train through severe pain. Stop and consider professional evaluation.",
+      input
     };
   }
 
@@ -29,11 +31,17 @@ export function classifyReadiness(input: ReadinessInput): ReadinessResult {
   if (input.sleep === "poor" && ["moderate", "severe"].includes(input.soreness)) {
     reasons.push("READINESS_POOR_SLEEP_HIGH_SORENESS");
   }
+  if (input.sleep === "poor" || input.sleep === "very_poor") reasons.push("READINESS_POOR_SLEEP");
+  if (input.soreness === "moderate") reasons.push("READINESS_MODERATE_SORENESS");
+  if ((input.sorenessLocations ?? []).some((location) => ["hip", "quadriceps", "hamstring", "knee", "calf", "ankle", "lower_back"].includes(location))) reasons.push("READINESS_LOWER_BODY_SORENESS");
+  if ((input.availableMinutes ?? 40) < 40) reasons.push(`TIME_LIMIT_${input.availableMinutes ?? 40}`);
 
   const forcedRed = input.pain === "moderate" || input.soreness === "severe";
   const forcedYellow =
     input.football === "competition" ||
     input.football === "high_intensity" ||
+    input.sleep === "poor" ||
+    input.sleep === "very_poor" ||
     reasons.includes("READINESS_POOR_SLEEP_HIGH_SORENESS");
   const status = forcedRed ? "red" : forcedYellow ? "yellow" : baseScore >= 75 ? "green" : baseScore >= 50 ? "yellow" : "red";
 
@@ -48,6 +56,7 @@ export function classifyReadiness(input: ReadinessInput): ReadinessResult {
         ? "Train as planned and keep technique clean."
         : status === "yellow"
           ? "Use the reduced session and leave repetitions in reserve."
-          : "Choose recovery work or rest. Training load cannot be upgraded today."
+          : "Choose recovery work or rest. Training load cannot be upgraded today.",
+    input
   };
 }

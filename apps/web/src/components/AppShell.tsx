@@ -1,17 +1,17 @@
 import type { ReactNode } from "react";
 import { Barbell } from "@phosphor-icons/react/Barbell";
-import { BookOpen } from "@phosphor-icons/react/BookOpen";
+import { ChatCircleText } from "@phosphor-icons/react/ChatCircleText";
 import { House } from "@phosphor-icons/react/House";
 import { UserCircle } from "@phosphor-icons/react/UserCircle";
 import { ChartLineUp } from "@phosphor-icons/react/ChartLineUp";
 import { NavLink } from "react-router-dom";
 
 const navigation = [
-  { to: "/", label: "Train", icon: House },
-  { to: "/exercises", label: "Exercises", icon: BookOpen },
-  { to: "/history", label: "Activity", icon: Barbell },
+  { to: "/", label: "Home", icon: House },
+  { to: "/history", label: "Train", icon: Barbell },
   { to: "/progress", label: "Progress", icon: ChartLineUp },
-  { to: "/profile", label: "You", icon: UserCircle }
+  { to: "/coach", label: "AI Coach", icon: ChatCircleText },
+  { to: "/profile", label: "More", icon: UserCircle }
 ];
 
 export function AppShell({ children, action }: { children: ReactNode; action?: ReactNode }) {

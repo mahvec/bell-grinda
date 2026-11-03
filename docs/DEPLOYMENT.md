@@ -26,6 +26,9 @@ The PWA remains useful without the API. The API is for safe backup and future mu
    NODE_ENV=production
    CORS_ORIGIN=https://YOUR-VERCEL-DOMAIN
    LOCAL_USER_ID=00000000-0000-4000-8000-000000000001
+   NVIDIA_API_KEY=YOUR_SERVER_SIDE_NVIDIA_KEY
+   NVIDIA_MODEL=nvidia/nemotron-3.5-lightning-30b-a3b
+   NVIDIA_API_BASE_URL=https://integrate.api.nvidia.com/v1
    ```
 
 5. Run the initial migration from the Railway service shell:
@@ -61,7 +64,15 @@ Node version: 22
 
 The `vercel.json` rewrite returns the PWA shell for direct links such as `/workout`, so browser refresh and shared links keep working.
 
-Once the PWA has an API client, set its public API base URL to the Railway domain and update `CORS_ORIGIN` on Railway to the Vercel production URL. Do not put `DATABASE_URL` or other server credentials into Vercel variables.
+### Installed PWA updates
+
+The PWA checks for new releases at startup, when it returns to the foreground, when connectivity returns, and hourly while visible and online. Once a release is ready, an **Update available** banner offers **Restart to update** or **Later**. Updates require an explicit restart and are deferred while a workout is active, paused, or awaiting its final review. Restarting preserves IndexedDB training records.
+
+For installations from before the update banner was added, close the installed app and all browser tabs for the same domain, then reopen online to allow the waiting service worker to activate. Do not clear site data to force an update: that also removes local workout history. Confirm that the new Vercel deployment is promoted to Production on the installed app's domain.
+
+Set the PWA's public API base URL to the Railway domain and update `CORS_ORIGIN` on Railway to the Vercel production URL. Do not put `DATABASE_URL` or other server credentials into Vercel variables.
+
+Set `VITE_API_BASE_URL` on Vercel to the Railway public domain to enable BellGrinda Coach. Keep `NVIDIA_API_KEY` on Railway only. Without the key, the Coach endpoint returns deterministic explanations from BellGrinda reason codes; workouts remain fully functional. The default model uses NVIDIA's free prototype endpoint and can be replaced with another compatible catalog model through `NVIDIA_MODEL`.
 
 ## Before opening accounts to users
 
