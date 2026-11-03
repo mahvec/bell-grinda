@@ -14,6 +14,6 @@ describe("BellGrinda app bootstrap", () => {
 
   it("shows onboarding when no local profile exists", async () => {
     render(<Provider store={store}><MemoryRouter><App /></MemoryRouter></Provider>);
-    expect(await screen.findByRole("heading", { name: /One bell\.\s*A stronger you\./ })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: /Your bells\.\s*A stronger you\./ })).toBeInTheDocument();
   });
 });

@@ -1,4 +1,4 @@
-import type { ExercisePrescription, GeneratedWorkout, ReadinessResult, TrainingLevel, UserProfile } from "@bellgrinda/domain";
+import { getAvailableKettlebellLoads, type ExercisePrescription, type GeneratedWorkout, type ReadinessResult, type TrainingLevel, type UserProfile } from "@bellgrinda/domain";
 
 type Day = { title: string; focus: string; exercises: ExercisePrescription[] };
 type Program = { label: string; version: string; rounds: number; estimatedMinutes: number; days: Record<number, Day> };
@@ -89,7 +89,9 @@ export function generateProgramWorkout(date: Date, readiness: ReadinessResult, p
   const isoDate = date.toISOString().slice(0, 10);
   const weekday = date.getUTCDay();
   const day = weekday >= 1 && weekday <= 5 ? weekday : 1;
-  const load = profile.equipment.includes("kettlebell_12") ? (profile.defaultKettlebellKg ?? 12) : 0;
+  const availableLoads = getAvailableKettlebellLoads(profile);
+  const preferredLoad = profile.defaultKettlebellKg ?? availableLoads[0] ?? 0;
+  const load = availableLoads.includes(preferredLoad) ? preferredLoad : ([...availableLoads].reverse().find((item) => item <= preferredLoad) ?? availableLoads[0] ?? 0);
   const definition = program(profile.trainingLevel, load, profile.phase);
   const footballCompetition = readiness.reasonCodes.includes("FOOTBALL_COMPETITION_DAY");
   const footballHigh = readiness.reasonCodes.includes("FOOTBALL_HIGH_INTENSITY_DAY");
@@ -98,18 +100,30 @@ export function generateProgramWorkout(date: Date, readiness: ReadinessResult, p
   const reduced = readiness.status === "yellow" || football;
   const planned = definition.days[day]!;
   const useActivation = !isRed && football;
-  const exercises = isRed ? recovery : useActivation ? activation : planned.exercises;
-  const rounds = isRed || footballCompetition ? 1 : footballHigh ? 2 : reduced ? Math.max(2, definition.rounds - 2) : definition.rounds;
+  const lowerBodySoreness = readiness.reasonCodes.includes("READINESS_LOWER_BODY_SORENESS") || readiness.reasonCodes.includes("READINESS_MODERATE_SORENESS");
+  const withApprovedLoads = planned.exercises.map((item) => {
+    if (item.loadKg === null) return item;
+    const explicitWorkingLoad = profile.exerciseWorkingLoadsKg?.[item.id];
+    const approved = explicitWorkingLoad ?? item.loadKg;
+    const selected = availableLoads.includes(approved) ? approved : [...availableLoads].reverse().find((candidate) => candidate <= approved);
+    return selected ? { ...item, loadKg: selected } : { ...item, loadKg: null, note: `${item.note ? `${item.note} ` : ""}No owned kettlebell is approved at or below this movement's working load.` };
+  });
+  const sorenessAdjusted = lowerBodySoreness ? withApprovedLoads.map((item) => ["goblet-squat", "front-rack-squat", "reverse-lunge", "loaded-reverse-lunge", "front-rack-lunge", "kb-swing"].includes(item.id) ? { ...item, target: target(1, item.target.replace(/\d+/, (value) => String(Math.max(3, Math.round(Number(value) * .7)))), item.target, item.target), note: `${item.note ? `${item.note} ` : ""}Reduced for reported lower-body soreness.` } : item) : withApprovedLoads;
+  const exercises = isRed ? recovery : useActivation ? activation : sorenessAdjusted;
+  const timeLimit = readiness.input?.availableMinutes ?? definition.estimatedMinutes;
+  const baseRounds = isRed || footballCompetition ? 1 : footballHigh ? 2 : reduced ? Math.max(2, definition.rounds - 2) : definition.rounds;
+  const rounds = Math.max(1, Math.min(baseRounds, timeLimit <= 20 ? 2 : timeLimit <= 30 ? 3 : baseRounds));
+  const estimatedMinutes = isRed ? 20 : useActivation ? 12 : Math.min(timeLimit, reduced ? 30 : definition.estimatedMinutes);
   return {
     id: `${profile.trainingLevel}-${isoDate}-${readiness.status}`,
     date: isoDate,
     title: isRed ? "Recovery session" : useActivation ? "Football-day activation" : planned.title,
     focus: isRed ? "Restore movement and reassess readiness." : useActivation ? "Prepare for football without adding meaningful fatigue." : planned.focus,
     rounds,
-    estimatedMinutes: isRed ? 20 : useActivation ? 12 : reduced ? 30 : definition.estimatedMinutes,
+    estimatedMinutes,
     readiness,
     exercises,
-    reasonCodes: [`LEVEL_${profile.trainingLevel.toUpperCase()}`, `PHASE_${profile.phase}`, `READINESS_${readiness.status.toUpperCase()}`, ...(reduced ? ["VOLUME_REDUCED"] : []), ...(useActivation ? ["FOOTBALL_ACTIVATION"] : [])],
+    reasonCodes: [`LEVEL_${profile.trainingLevel.toUpperCase()}`, `PHASE_${profile.phase}`, `READINESS_${readiness.status.toUpperCase()}`, ...(reduced ? ["VOLUME_REDUCED"] : []), ...(useActivation ? ["FOOTBALL_ACTIVATION"] : []), ...(lowerBodySoreness ? ["LOWER_BODY_VOLUME_REDUCED"] : []), ...(rounds < baseRounds ? ["TIME_CAPPED"] : []), "EQUIPMENT_LOADS_VALIDATED"],
     engineVersion: definition.version
   };
 }

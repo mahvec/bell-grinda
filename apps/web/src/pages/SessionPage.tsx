@@ -7,12 +7,12 @@ import { SkipForward } from "@phosphor-icons/react/SkipForward";
 import { Warning } from "@phosphor-icons/react/Warning";
 import { X } from "@phosphor-icons/react/X";
 import { Link, Navigate, useNavigate } from "react-router-dom";
-import { getSessionCompletedSets, getSessionCompletionPercentage, getSessionDurationSeconds, getSessionSkippedSets, type BodyLocation, type PainEvent, type PainSeverity, type WorkoutSession } from "@bellgrinda/domain";
-import { createPerformanceSnapshot, decidePainAction, detectSessionPersonalRecords, evaluateProgression, type PainDecision } from "@bellgrinda/training-engine";
+import { getAvailableKettlebellLoads, getSessionCompletedSets, getSessionCompletionPercentage, getSessionDurationSeconds, getSessionSkippedSets, type BodyLocation, type PainEvent, type PainSeverity, type WorkoutSession } from "@bellgrinda/domain";
+import { createPerformanceSnapshot, decidePainAction, detectSessionPersonalRecords, evaluateLevelTrial, evaluateProgression, type PainDecision } from "@bellgrinda/training-engine";
 import { ExerciseDemo } from "../components/ExerciseDemo";
 import { getExerciseMedia } from "../media/exerciseMedia";
 import { getMovementCues } from "../media/exerciseGuide";
-import { painEventRepository, performanceSnapshotRepository, personalRecordRepository, progressionDecisionRepository, sessionRepository } from "../persistence/database";
+import { levelReviewRepository, painEventRepository, performanceSnapshotRepository, personalRecordRepository, progressionDecisionRepository, sessionRepository } from "../persistence/database";
 import { useAppDispatch, useAppSelector } from "../state/hooks";
 import { setActiveSession } from "../state/store";
 
@@ -26,12 +26,18 @@ const targetUnit = (target: string) => target.toLowerCase().includes("per side")
 const actualTargetText = (target: string, value: number) => `${value} ${targetUnit(target)}`;
 const formatDuration = (seconds: number) => `${Math.floor(seconds / 60)}m ${seconds % 60}s`;
 const locations: { value: BodyLocation; label: string }[] = [
+  { value: "neck", label: "Neck" },
+  { value: "chest", label: "Chest" },
+  { value: "upper_back", label: "Upper back" },
   { value: "lower_back", label: "Lower back" },
   { value: "shoulder", label: "Shoulder" },
   { value: "elbow", label: "Elbow" },
   { value: "wrist", label: "Wrist" },
   { value: "hip", label: "Hip" },
+  { value: "quadriceps", label: "Front thigh" },
+  { value: "hamstring", label: "Hamstring" },
   { value: "knee", label: "Knee" },
+  { value: "calf", label: "Calf" },
   { value: "ankle", label: "Ankle" },
   { value: "other", label: "Other" }
 ];
@@ -65,13 +71,15 @@ function SessionReview({ session }: { session: WorkoutSession }) {
     };
     await sessionRepository.save(next);
     const [recentSessions, painEvents, records, snapshots] = await Promise.all([sessionRepository.listHistory(), painEventRepository.listAll(), personalRecordRepository.list(), performanceSnapshotRepository.list()]);
-    const availableLoadsKg = profile?.equipment.flatMap((item) => item === "kettlebell_12" ? [12] : []) ?? [];
+    const availableLoadsKg = profile ? getAvailableKettlebellLoads(profile) : [];
     const decisions = evaluateProgression({ currentSession: next, recentSessions, painEvents, availableLoadsKg });
     const newRecords = detectSessionPersonalRecords(next, records);
     const snapshot = createPerformanceSnapshot({ sessions: recentSessions, previousSnapshots: snapshots, sourceSessionId: next.id });
-    await Promise.all([progressionDecisionRepository.saveMany(decisions), personalRecordRepository.saveMany(newRecords), performanceSnapshotRepository.save(snapshot)]);
+    const trialReview = next.workout.levelTrial ? await levelReviewRepository.get(next.workout.levelTrial.reviewId) : undefined;
+    const evaluatedTrial = trialReview ? evaluateLevelTrial(trialReview, next, painEvents) : undefined;
+    await Promise.all([progressionDecisionRepository.saveMany(decisions), personalRecordRepository.saveMany(newRecords), performanceSnapshotRepository.save(snapshot), ...(evaluatedTrial ? [levelReviewRepository.save(evaluatedTrial)] : [])]);
     dispatch(setActiveSession(null));
-    navigate("/history", { state: { completed: finalStatus === "completed", detailId: next.id } });
+    navigate(evaluatedTrial ? "/level-review" : "/history", { state: { completed: finalStatus === "completed", detailId: next.id } });
   };
 
   return <main className="review-screen">

@@ -26,6 +26,9 @@ The PWA remains useful without the API. The API is for safe backup and future mu
    NODE_ENV=production
    CORS_ORIGIN=https://YOUR-VERCEL-DOMAIN
    LOCAL_USER_ID=00000000-0000-4000-8000-000000000001
+   NVIDIA_API_KEY=YOUR_SERVER_SIDE_NVIDIA_KEY
+   NVIDIA_MODEL=nvidia/nemotron-3.5-lightning-30b-a3b
+   NVIDIA_API_BASE_URL=https://integrate.api.nvidia.com/v1
    ```
 
 5. Run the initial migration from the Railway service shell:
@@ -67,7 +70,9 @@ The PWA checks for new releases at startup, when it returns to the foreground, w
 
 For installations from before the update banner was added, close the installed app and all browser tabs for the same domain, then reopen online to allow the waiting service worker to activate. Do not clear site data to force an update: that also removes local workout history. Confirm that the new Vercel deployment is promoted to Production on the installed app's domain.
 
-Once the PWA has an API client, set its public API base URL to the Railway domain and update `CORS_ORIGIN` on Railway to the Vercel production URL. Do not put `DATABASE_URL` or other server credentials into Vercel variables.
+Set the PWA's public API base URL to the Railway domain and update `CORS_ORIGIN` on Railway to the Vercel production URL. Do not put `DATABASE_URL` or other server credentials into Vercel variables.
+
+Set `VITE_API_BASE_URL` on Vercel to the Railway public domain to enable BellGrinda Coach. Keep `NVIDIA_API_KEY` on Railway only. Without the key, the Coach endpoint returns deterministic explanations from BellGrinda reason codes; workouts remain fully functional. The default model uses NVIDIA's free prototype endpoint and can be replaced with another compatible catalog model through `NVIDIA_MODEL`.
 
 ## Before opening accounts to users
 

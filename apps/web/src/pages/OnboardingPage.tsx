@@ -1,14 +1,15 @@
 import { useState, type FormEvent } from "react";
 import { Barbell } from "@phosphor-icons/react/Barbell";
 import { Check } from "@phosphor-icons/react/Check";
-import type { Equipment, UserProfile } from "@bellgrinda/domain";
+import type { Equipment, UserEquipment, UserProfile } from "@bellgrinda/domain";
 import { profileRepository } from "../persistence/database";
 import { setProfile } from "../state/store";
 import { useAppDispatch } from "../state/hooks";
 import { KettlebellArt } from "../components/KettlebellArt";
+import { KettlebellEditor } from "../components/KettlebellEditor";
 
 const choices: { id: Equipment; label: string; note: string }[] = [
-  { id: "kettlebell_12", label: "12 kg kettlebell", note: "Required for the initial Novice plan" },
+  { id: "kettlebell_12", label: "Kettlebell", note: "Add every weight and quantity you own below" },
   { id: "dumbbell", label: "Dumbbell", note: "Optional strength and single-leg work" },
   { id: "mat", label: "Exercise mat", note: "Core and recovery work" },
   { id: "chair", label: "Chair or bench", note: "Regressions and supported movements" },
@@ -19,21 +20,24 @@ export function OnboardingPage() {
   const dispatch = useAppDispatch();
   const [name, setName] = useState("");
   const [equipment, setEquipment] = useState<Equipment[]>(["kettlebell_12", "mat", "skipping_rope"]);
-  const [kettlebellKg, setKettlebellKg] = useState(12);
+  const now = new Date().toISOString();
+  const [equipmentItems, setEquipmentItems] = useState<UserEquipment[]>([{ id: crypto.randomUUID(), equipmentType: "kettlebell", weightKg: 12, quantity: 1, active: true, createdAt: now, updatedAt: now }]);
   const [dumbbellKg, setDumbbellKg] = useState(15);
   const [error, setError] = useState("");
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
     if (!name.trim()) return setError("Enter the name you want BellGrinda to use.");
-    if (!equipment.includes("kettlebell_12")) return setError("The initial plan requires a 12 kg kettlebell.");
+    const kettlebells = equipmentItems.filter((item) => item.equipmentType === "kettlebell" && item.active);
+    if (!equipment.includes("kettlebell_12") || !kettlebells.length) return setError("Add at least one kettlebell for the initial plan.");
     const profile: UserProfile = {
       id: crypto.randomUUID(),
       name: name.trim(),
       trainingLevel: "novice",
       phase: 1,
       equipment,
-      defaultKettlebellKg: kettlebellKg,
+      equipmentItems: [...equipmentItems, ...equipment.filter((item) => !["kettlebell_12", "dumbbell"].includes(item)).map((item) => ({ id: crypto.randomUUID(), equipmentType: item === "skipping_rope" ? "rope" as const : item === "chair" ? "bench" as const : item as "mat", quantity: 1, active: true, createdAt: now, updatedAt: now })), ...(equipment.includes("dumbbell") ? [{ id: crypto.randomUUID(), equipmentType: "dumbbell" as const, weightKg: dumbbellKg, quantity: 1, active: true, createdAt: now, updatedAt: now }] : [])],
+      defaultKettlebellKg: kettlebells[0]!.weightKg,
       defaultDumbbellKg: equipment.includes("dumbbell") ? dumbbellKg : undefined,
       createdAt: new Date().toISOString()
     };
@@ -51,7 +55,7 @@ export function OnboardingPage() {
       <section className="onboarding-copy">
         <span className="brand"><img src="/icon.svg" className="brand-mark" alt="" />bellgrinda.</span>
         <p className="kicker">Show up. Get stronger.</p>
-        <h1>One bell.<br />A stronger you.</h1>
+        <h1>Your bells.<br />A stronger you.</h1>
         <p>Build strength with kettlebell and bodyweight workouts that meet you where you are.</p>
         <div className="onboarding-art"><KettlebellArt /></div>
       </section>
@@ -78,10 +82,7 @@ export function OnboardingPage() {
             })}
           </div>
         </fieldset>
-        <label className="field">
-          <span>Your kettlebell weight</span>
-          <span className="weight-input"><input type="number" inputMode="decimal" min="1" max="200" step="0.5" value={kettlebellKg} onChange={(event) => setKettlebellKg(Math.max(1, Number(event.target.value)))} /><small>kg</small></span>
-        </label>
+        {equipment.includes("kettlebell_12") ? <KettlebellEditor items={equipmentItems} onChange={setEquipmentItems} /> : null}
         {equipment.includes("dumbbell") ? <label className="field">
           <span>Your dumbbell weight</span>
           <span className="weight-input"><input type="number" inputMode="decimal" min="1" max="200" step="0.5" value={dumbbellKg} onChange={(event) => setDumbbellKg(Math.max(1, Number(event.target.value)))} /><small>kg</small></span>

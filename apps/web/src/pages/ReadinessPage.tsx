@@ -1,23 +1,26 @@
 import { useState, type FormEvent } from "react";
 import { ArrowLeft } from "@phosphor-icons/react/ArrowLeft";
 import { ArrowRight } from "@phosphor-icons/react/ArrowRight";
-import type { ReadinessInput } from "@bellgrinda/domain";
+import type { BodyLocation, ReadinessInput } from "@bellgrinda/domain";
 import { applyProgressionDecisions, classifyReadiness, generateProgramWorkout } from "@bellgrinda/training-engine";
 import { Link, useNavigate } from "react-router-dom";
 import { AppShell } from "../components/AppShell";
 import { useAppDispatch, useAppSelector } from "../state/hooks";
 import { setPreparedWorkout } from "../state/store";
-import { progressionDecisionRepository } from "../persistence/database";
+import { progressionDecisionRepository, readinessRepository } from "../persistence/database";
 
-const questions: { key: keyof ReadinessInput; label: string; choices: { value: string; label: string }[] }[] = [
+const questions: { key: "energy" | "sleep" | "soreness" | "pain" | "motivation" | "availableMinutes" | "football"; label: string; choices: { value: string | number; label: string }[] }[] = [
   { key: "energy", label: "Energy", choices: [["high", "High"], ["normal", "Normal"], ["low", "Low"], ["very_low", "Very low"]].map(([value, label]) => ({ value: value!, label: label! })) },
-  { key: "sleep", label: "Sleep", choices: [["good", "Good"], ["okay", "Okay"], ["poor", "Poor"], ["very_poor", "Very poor"]].map(([value, label]) => ({ value: value!, label: label! })) },
+  { key: "sleep", label: "Sleep", choices: [["excellent", "Excellent"], ["good", "Good"], ["okay", "Okay"], ["poor", "Poor"]].map(([value, label]) => ({ value: value!, label: label! })) },
   { key: "soreness", label: "Soreness", choices: [["none", "None"], ["mild", "Mild"], ["moderate", "Moderate"], ["severe", "Severe"]].map(([value, label]) => ({ value: value!, label: label! })) },
   { key: "pain", label: "Pain", choices: [["none", "None"], ["mild", "Mild"], ["moderate", "Moderate"], ["severe", "Severe"]].map(([value, label]) => ({ value: value!, label: label! })) },
-  { key: "football", label: "Football today", choices: [["none", "No"], ["recreational", "Recreational"], ["match", "Match"], ["high_intensity", "High intensity"], ["competition", "Competition"]].map(([value, label]) => ({ value: value!, label: label! })) }
+  { key: "motivation", label: "Mood / motivation", choices: [["low", "Low"], ["normal", "Normal"], ["good", "Good"], ["very_motivated", "Very motivated"]].map(([value, label]) => ({ value: value!, label: label! })) },
+  { key: "availableMinutes", label: "Available training time", choices: [20, 30, 40, 45].map((value) => ({ value, label: value === 45 ? "45+ min" : `${value} min` })) },
+  { key: "football", label: "Football / other activity", choices: [["none", "None"], ["recreational", "Light"], ["match", "Normal match"], ["high_intensity", "High intensity"], ["competition", "Competition"]].map(([value, label]) => ({ value: value!, label: label! })) }
 ];
 
-const defaults: ReadinessInput = { energy: "normal", sleep: "good", soreness: "none", pain: "none", football: "none" };
+const defaults: ReadinessInput = { energy: "normal", sleep: "good", soreness: "none", pain: "none", football: "none", motivation: "normal", availableMinutes: 40, sorenessLocations: [], painLocations: [] };
+const locations: { value: BodyLocation; label: string }[] = [{ value: "neck", label: "Neck" }, { value: "chest", label: "Chest" }, { value: "upper_back", label: "Upper back" }, { value: "lower_back", label: "Lower back" }, { value: "shoulder", label: "Shoulder" }, { value: "elbow", label: "Elbow" }, { value: "wrist", label: "Wrist" }, { value: "hip", label: "Hip" }, { value: "quadriceps", label: "Front thigh" }, { value: "hamstring", label: "Hamstring" }, { value: "knee", label: "Knee" }, { value: "calf", label: "Calf" }, { value: "ankle", label: "Ankle" }, { value: "other", label: "Other" }];
 
 export function ReadinessPage() {
   const [values, setValues] = useState<ReadinessInput>(defaults);
@@ -27,7 +30,10 @@ export function ReadinessPage() {
   const submit = async (event: FormEvent) => {
     event.preventDefault();
     const decisions = await progressionDecisionRepository.listLatestApplicable();
-    const workout = generateProgramWorkout(new Date(), classifyReadiness(values), profile);
+    const result = classifyReadiness(values);
+    const today = new Date().toISOString().slice(0, 10);
+    await readinessRepository.save({ id: `${today}:${profile.id}`, date: today, input: values, result, createdAt: new Date().toISOString() });
+    const workout = generateProgramWorkout(new Date(), result, profile);
     dispatch(setPreparedWorkout(applyProgressionDecisions(workout, decisions)));
     navigate("/workout");
   };
@@ -56,6 +62,7 @@ export function ReadinessPage() {
             </div>
           </fieldset>
         ))}
+        {(["soreness", "pain"] as const).map((kind) => values[kind] !== "none" ? <fieldset className="choice-group" key={`${kind}-locations`}><legend>Where is the {kind === "pain" ? "discomfort" : "soreness"}?</legend><div className="region-grid">{locations.map((location) => { const key = kind === "pain" ? "painLocations" : "sorenessLocations"; const selected = values[key].includes(location.value); return <button type="button" key={location.value} aria-pressed={selected} onClick={() => setValues((current) => ({ ...current, [key]: selected ? current[key].filter((item) => item !== location.value) : [...current[key], location.value] }))}>{location.label}</button>; })}</div></fieldset> : null)}
         <button className="button primary" type="submit">Build today's workout <ArrowRight size={18} weight="bold" /></button>
       </form>
     </AppShell>

@@ -1,4 +1,4 @@
-import { painEventSchema, userProfileSchema, workoutSessionSchema } from "@bellgrinda/domain";
+import { coachRequestSchema, coachResponseSchema, painEventSchema, userProfileSchema, workoutSessionSchema, type CoachContext } from "@bellgrinda/domain";
 import cors from "cors";
 import { eq } from "drizzle-orm";
 import express, { type NextFunction, type Request, type Response } from "express";
@@ -31,6 +31,36 @@ function databaseRequired(response: Response, db: Database | undefined) {
   return undefined;
 }
 
+function deterministicCoachAnswer(question: string, context: CoachContext) {
+  if (context.todayWorkout) {
+    const reasons = context.todayWorkout.reasonCodes.filter((reason) => ["VOLUME_REDUCED", "LOWER_BODY_VOLUME_REDUCED", "TIME_CAPPED", "FOOTBALL_ACTIVATION", "DELOAD_ACTIVE"].includes(reason)).map((reason) => reason.replaceAll("_", " ").toLowerCase());
+    return `Today's ${context.todayWorkout.title} has ${context.todayWorkout.rounds} rounds and focuses on ${context.todayWorkout.focus.toLowerCase()}.${reasons.length ? ` Adjustments: ${reasons.join(", ")}.` : ""} The deterministic engines selected the prescription; the Coach cannot change it.`;
+  }
+  return context.recentSessions.length ? `BellGrinda found ${context.recentSessions.length} recent sessions relevant to “${question}”. The current level is ${context.currentTrainingLevel.replaceAll("_", " ")} phase ${context.currentPhase}.` : "BellGrinda does not have enough recorded history to answer that confidently yet.";
+}
+
+async function createCoachAnswer(config: AppConfig, question: string, context: CoachContext) {
+  if (!config.NVIDIA_API_KEY) return coachResponseSchema.parse({ answer: deterministicCoachAnswer(question, context), source: "deterministic", uncertainty: context.recentSessions.length === 0 && !context.todayWorkout });
+  const aiResponse = await fetch(`${config.NVIDIA_API_BASE_URL.replace(/\/$/, "")}/chat/completions`, { method: "POST", headers: { authorization: `Bearer ${config.NVIDIA_API_KEY}`, accept: "application/json", "content-type": "application/json" }, body: JSON.stringify({
+    model: config.NVIDIA_MODEL,
+    messages: [
+      { role: "system", content: "You are BellGrinda Coach. Explain only the supplied structured BellGrinda data. The deterministic workout, readiness, safety, progression, and level-review engines are authoritative. Never invent history, diagnose injury, remove restrictions, change a prescription, or promote a user. Express uncertainty when evidence is missing. Return only valid JSON with exactly two fields: answer (a string under 180 words) and uncertainty (a boolean)." },
+      { role: "user", content: `Question: ${question}\nStructured BellGrinda context:\n${JSON.stringify(context)}` }
+    ],
+    temperature: 0.2,
+    top_p: 0.95,
+    max_tokens: 1200,
+    reasoning_budget: 512,
+    stream: false
+  }) });
+  if (!aiResponse.ok) throw new Error(`Coach provider returned ${aiResponse.status}`);
+  const payload = await aiResponse.json() as { choices?: { message?: { content?: string | null } }[] };
+  const text = payload.choices?.[0]?.message?.content?.trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "");
+  if (!text) throw new Error("Coach provider returned no text output");
+  const parsed = JSON.parse(text) as { answer: string; uncertainty: boolean };
+  return coachResponseSchema.parse({ ...parsed, source: "ai" });
+}
+
 export function createApp({ config, db }: Dependencies) {
   const app = express();
   app.disable("x-powered-by");
@@ -51,6 +81,13 @@ export function createApp({ config, db }: Dependencies) {
     } catch {
       response.status(503).json(failure("DATABASE_UNAVAILABLE", "The database is not ready.", response.locals.requestId));
     }
+  });
+
+  app.post("/api/v1/ai/coach", async (request, response) => {
+    const parsed = coachRequestSchema.safeParse(request.body);
+    if (!parsed.success) { response.status(422).json(failure("VALIDATION_ERROR", "The Coach request is invalid.", response.locals.requestId)); return; }
+    try { response.json(success(await createCoachAnswer(config, parsed.data.question, parsed.data.context))); }
+    catch { response.json(success(coachResponseSchema.parse({ answer: deterministicCoachAnswer(parsed.data.question, parsed.data.context), source: "deterministic", uncertainty: true }))); }
   });
 
   app.get("/api/v1/profile", async (_request, response, next) => {

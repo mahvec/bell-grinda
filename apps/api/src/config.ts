@@ -6,7 +6,10 @@ const configSchema = z.object({
   PORT: z.coerce.number().int().min(1).max(65_535).default(3001),
   DATABASE_URL: z.string().url().optional(),
   CORS_ORIGIN: z.string().url().optional(),
-  LOCAL_USER_ID: z.string().uuid().default("00000000-0000-4000-8000-000000000001")
+  LOCAL_USER_ID: z.string().uuid().default("00000000-0000-4000-8000-000000000001"),
+  NVIDIA_API_KEY: z.preprocess((value) => value === "" ? undefined : value, z.string().min(1).optional()),
+  NVIDIA_MODEL: z.string().min(1).default("nvidia/nemotron-3.5-lightning-30b-a3b"),
+  NVIDIA_API_BASE_URL: z.string().url().default("https://integrate.api.nvidia.com/v1")
 });
 
 export type AppConfig = z.infer<typeof configSchema>;

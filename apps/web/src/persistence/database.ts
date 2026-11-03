@@ -1,5 +1,5 @@
 import Dexie, { type EntityTable } from "dexie";
-import type { Assessment, PainEvent, PerformanceSnapshot, PersonalRecord, ProgressionDecision, UserProfile, WorkoutSession } from "@bellgrinda/domain";
+import type { Assessment, DailyReadinessRecord, LevelHistoryEntry, LevelProgressionReview, PainEvent, PerformanceSnapshot, PersonalRecord, ProgressionDecision, UserProfile, WorkoutSession } from "@bellgrinda/domain";
 
 export class BellGrindaDatabase extends Dexie {
   profiles!: EntityTable<UserProfile, "id">;
@@ -9,6 +9,9 @@ export class BellGrindaDatabase extends Dexie {
   assessments!: EntityTable<Assessment, "id">;
   personalRecords!: EntityTable<PersonalRecord, "id">;
   performanceSnapshots!: EntityTable<PerformanceSnapshot, "id">;
+  readinessRecords!: EntityTable<DailyReadinessRecord, "id">;
+  levelReviews!: EntityTable<LevelProgressionReview, "id">;
+  levelHistory!: EntityTable<LevelHistoryEntry, "id">;
 
   constructor(name = "bellgrinda") {
     super(name);
@@ -53,6 +56,18 @@ export class BellGrindaDatabase extends Dexie {
       assessments: "id, date, type, createdAt",
       personalRecords: "id, exerciseId, recordType, sessionId, date",
       performanceSnapshots: "id, calculatedAt, sourceSessionId, sourceAssessmentId"
+    });
+    this.version(6).stores({
+      profiles: "id, createdAt",
+      sessions: "id, status, startedAt, updatedAt, completedAt",
+      painEvents: "id, sessionId, exerciseId, bodyLocation, severity, occurredAt",
+      progressionDecisions: "id, sessionId, scope, exerciseId, decision, createdAt",
+      assessments: "id, date, type, createdAt",
+      personalRecords: "id, exerciseId, recordType, sessionId, date",
+      performanceSnapshots: "id, calculatedAt, sourceSessionId, sourceAssessmentId",
+      readinessRecords: "id, date, createdAt",
+      levelReviews: "id, currentLevel, result, requestedAt",
+      levelHistory: "id, previousLevel, newLevel, changedAt"
     });
   }
 }
@@ -113,4 +128,21 @@ export const performanceSnapshotRepository = {
   save: (snapshot: PerformanceSnapshot) => db.performanceSnapshots.put(snapshot),
   list: () => db.performanceSnapshots.orderBy("calculatedAt").reverse().toArray(),
   latest: () => db.performanceSnapshots.orderBy("calculatedAt").last()
+};
+
+export const readinessRepository = {
+  save: (record: DailyReadinessRecord) => db.readinessRecords.put(record),
+  getForDate: (date: string) => db.readinessRecords.where("date").equals(date).last()
+};
+
+export const levelReviewRepository = {
+  save: (review: LevelProgressionReview) => db.levelReviews.put(review),
+  get: (id: string) => db.levelReviews.get(id),
+  latest: () => db.levelReviews.orderBy("requestedAt").last(),
+  list: () => db.levelReviews.orderBy("requestedAt").reverse().toArray()
+};
+
+export const levelHistoryRepository = {
+  save: (entry: LevelHistoryEntry) => db.levelHistory.put(entry),
+  list: () => db.levelHistory.orderBy("changedAt").reverse().toArray()
 };

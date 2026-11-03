@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { CheckCircle } from "@phosphor-icons/react/CheckCircle";
 import { ClockCounterClockwise } from "@phosphor-icons/react/ClockCounterClockwise";
 import { WarningCircle } from "@phosphor-icons/react/WarningCircle";
-import { useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { getSessionCompletedSets, getSessionCompletionPercentage, getSessionDurationSeconds, getSessionSkippedSets, type ProgressionDecision, type WorkoutSession } from "@bellgrinda/domain";
 import { AppShell } from "../components/AppShell";
 import { progressionDecisionRepository, sessionRepository } from "../persistence/database";
@@ -54,6 +54,7 @@ export function HistoryPage() {
               {session.substitutions.length ? <p><strong>Substitutions:</strong> {session.substitutions.map((item) => item.substituteName).join(", ")}</p> : null}
               {session.painEventIds.length ? <p><strong>Discomfort reports:</strong> {session.painEventIds.length}</p> : null}
               {session.notes ? <blockquote>{session.notes}</blockquote> : null}
+              <Link className="button secondary" to="/coach">Ask BellGrinda Coach about this session</Link>
               {sessionDecisions.length ? <section className="progression-summary"><h3>Next-session decisions</h3>{sessionDecisions.map((decision) => <article key={decision.id} data-decision={decision.decision}><span>{decision.decision.replaceAll("_", " ")}</span><strong>{decision.exerciseName ?? "Session recovery"}</strong><p>{decision.explanation}</p>{decision.plateauType ? <small>{decision.plateauType} signal · {decision.reasonCodes.join(" · ")}</small> : <small>{decision.reasonCodes.join(" · ")}</small>}</article>)}</section> : null}
             </div>
           </details>;
