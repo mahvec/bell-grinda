@@ -35,4 +35,13 @@ describe("ExerciseDemo", () => {
     fireEvent.click(screen.getByRole("button", { name: "Close exercise demonstration" }));
     expect(screen.queryByLabelText("Skipping rope video demonstration")).not.toBeInTheDocument();
   });
+
+  it("embeds hosted instruction without offering an unsupported offline download", () => {
+    render(<ExerciseDemo media={getExerciseMedia("kb-halo")!} exerciseName="Kettlebell halo" />);
+    expect(screen.getByRole("button", { name: /step-by-step · online video/i })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /watch demo/i }));
+    expect(screen.getByTitle("Kettlebell halo video demonstration")).toHaveAttribute("src", expect.stringContaining("youtube-nocookie.com/embed/"));
+    expect(screen.getByText(/online only/i)).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /save offline/i })).not.toBeInTheDocument();
+  });
 });

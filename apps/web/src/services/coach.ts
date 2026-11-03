@@ -1,7 +1,7 @@
 import { coachContextSchema, coachResponseSchema, getProfileEquipment, getSessionCompletionPercentage, type CoachContext, type CoachResponse, type GeneratedWorkout, type UserProfile } from "@bellgrinda/domain";
 import { assessmentRepository, levelReviewRepository, performanceSnapshotRepository, progressionDecisionRepository, sessionRepository } from "../persistence/database";
 
-const reasons: Record<string, string> = { VOLUME_REDUCED: "readiness signals reduced the planned volume", LOWER_BODY_VOLUME_REDUCED: "reported soreness reduced lower-body work", TIME_CAPPED: "the workout was shortened to fit the available training time", FOOTBALL_ACTIVATION: "football activity replaced normal training with low-fatigue activation", DELOAD_ACTIVE: "recent recovery and effort trends triggered a temporary deload", EQUIPMENT_LOADS_VALIDATED: "every prescribed load was checked against owned equipment and approved working loads" };
+const reasons: Record<string, string> = { MAPPED_EXERCISE_SELECTED: "a level- and phase-eligible exercise was selected from your approved movement pool", VOLUME_REDUCED: "readiness signals reduced the planned volume", LOWER_BODY_VOLUME_REDUCED: "reported soreness reduced lower-body work", TIME_CAPPED: "the workout was shortened to fit the available training time", FOOTBALL_ACTIVATION: "football activity replaced normal training with low-fatigue activation", DELOAD_ACTIVE: "recent recovery and effort trends triggered a temporary deload", EQUIPMENT_LOADS_VALIDATED: "every prescribed load was checked against owned equipment and approved working loads" };
 
 export function deterministicWorkoutExplanation(workout: GeneratedWorkout) {
   const adjustments = workout.reasonCodes.flatMap((code) => reasons[code] ? [reasons[code]] : []);

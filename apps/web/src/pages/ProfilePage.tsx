@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { DownloadSimple } from "@phosphor-icons/react/DownloadSimple";
 import { Link } from "react-router-dom";
 import { getProfileEquipment, getSessionCompletedSets, getSessionDurationSeconds, type Equipment, type UserEquipment, type WorkoutSession } from "@bellgrinda/domain";
+import { supplementalExerciseMappings } from "@bellgrinda/training-engine";
 import { AppShell } from "../components/AppShell";
 import { useAppDispatch, useAppSelector } from "../state/hooks";
 import { profileRepository, sessionRepository } from "../persistence/database";
@@ -9,6 +10,7 @@ import { setProfile } from "../state/store";
 import { KettlebellEditor } from "../components/KettlebellEditor";
 
 type InstallPrompt = Event & { prompt: () => Promise<void>; userChoice: Promise<{ outcome: string }> };
+const levelRank = { novice: 0, advanced_novice: 1, intermediate: 2, advanced: 3, grandmaster: 4 } as const;
 export function ProfilePage() {
   const profile = useAppSelector((state) => state.app.profile)!;
   const dispatch = useAppDispatch();
@@ -18,6 +20,7 @@ export function ProfilePage() {
   const [equipmentItems, setEquipmentItems] = useState<UserEquipment[]>(getProfileEquipment(profile));
   const [dumbbellWeight, setDumbbellWeight] = useState(profile.defaultDumbbellKg ?? 15);
   const [hasDumbbell, setHasDumbbell] = useState(profile.equipment.includes("dumbbell"));
+  const [workingLoads, setWorkingLoads] = useState<Record<string, number>>(profile.exerciseWorkingLoadsKg ?? {});
   const [saved, setSaved] = useState(false);
   const [prompt, setPrompt] = useState<InstallPrompt | null>(null);
   const [installed, setInstalled] = useState(() => window.matchMedia?.("(display-mode: standalone)").matches ?? false);
@@ -47,7 +50,7 @@ export function ProfilePage() {
     const now = new Date().toISOString();
     const nextItems = [...bells, ...nonWeights, ...(hasDumbbell ? [{ id: equipmentItems.find((item) => item.equipmentType === "dumbbell")?.id ?? crypto.randomUUID(), equipmentType: "dumbbell" as const, weightKg: dumbbellWeight, quantity: 1, active: true, createdAt: now, updatedAt: now }] : [])];
     const defaultLoad = bells.some((item) => item.weightKg === weight) ? weight : bells[0]!.weightKg!;
-    const next = { ...profile, name: name.trim(), equipment, equipmentItems: nextItems, defaultKettlebellKg: defaultLoad, defaultDumbbellKg: hasDumbbell ? dumbbellWeight : undefined };
+    const next = { ...profile, name: name.trim(), equipment, equipmentItems: nextItems, exerciseWorkingLoadsKg: workingLoads, defaultKettlebellKg: defaultLoad, defaultDumbbellKg: hasDumbbell ? dumbbellWeight : undefined };
     await profileRepository.save(next); dispatch(setProfile(next)); setSaved(true); window.setTimeout(() => setSaved(false), 1800);
   };
   const install = async () => {
@@ -62,6 +65,11 @@ export function ProfilePage() {
     <section className="profile-insight"><p className="kicker">Your most trained movement</p><h2>{favoriteMovement}</h2><p>Based on completed sets in your workout history.</p></section>
     <section className="profile-section"><h2>Personal setup</h2><p>Keep these current so future workout prescriptions match what you actually use.</p><div className="profile-form"><label className="field">Name<input value={name} onChange={(event) => setName(event.target.value)} maxLength={60} /></label><KettlebellEditor items={equipmentItems} onChange={setEquipmentItems} /><label className="field">Default working kettlebell<span className="weight-input"><select value={weight} onChange={(event) => setWeight(Number(event.target.value))}>{equipmentItems.filter((item) => item.equipmentType === "kettlebell").map((item) => <option key={item.id} value={item.weightKg}>{item.weightKg} kg</option>)}</select></span></label><button className={`equipment-option${hasDumbbell ? " selected" : ""}`} type="button" aria-pressed={hasDumbbell} onClick={() => setHasDumbbell((current) => !current)}><span><strong>{hasDumbbell ? "Dumbbell added" : "Add a dumbbell"}</strong><small>Include dumbbell movements in your equipment library</small></span></button>{hasDumbbell ? <label className="field">Default dumbbell weight<span className="weight-input"><input type="number" inputMode="decimal" min="1" max="200" step="0.5" value={dumbbellWeight} onChange={(event) => setDumbbellWeight(Math.max(1, Number(event.target.value)))} /><small>kg</small></span></label> : null}<button className="button secondary" type="button" onClick={saveProfile}>{saved ? "Saved" : "Save changes"}</button></div></section>
     <section className="profile-section"><h2>Your equipment</h2><div className="equipment-chips">{getProfileEquipment(profile).map((item) => <span key={item.id}>{item.weightKg ? `${item.weightKg} kg ` : ""}{item.equipmentType} × {item.quantity}</span>)}</div></section>
+    <section className="profile-section"><h2>Exercise working loads</h2><p>New movements remain unapproved until you choose a load you own. Review the demonstration and prerequisites first. BellGrinda still blocks the exercise when level, phase, pain, soreness, activity, or equipment rules do not pass.</p><div className="working-load-list">{supplementalExerciseMappings.map((mapping) => {
+      const loads = [...new Set(equipmentItems.filter((item) => item.active && (mapping.equipmentType === "kettlebell_or_dumbbell" ? ["kettlebell", "dumbbell"].includes(item.equipmentType) : item.equipmentType === mapping.equipmentType)).flatMap((item) => item.weightKg ? [item.weightKg] : []))].sort((a, b) => a - b);
+      const levelEligible = levelRank[profile.trainingLevel] >= levelRank[mapping.minimumLevel];
+      return <label key={mapping.exercise.id}><span><strong>{mapping.exercise.name}</strong><small>{levelEligible ? `Minimum ${mapping.minimumLevel.replaceAll("_", " ")} · start at or below ${mapping.loadRule.maximumStartingLoadKg} kg` : `Unlocks at ${mapping.minimumLevel.replaceAll("_", " ")}`}</small></span><select disabled={!levelEligible} aria-label={`${mapping.exercise.name} approved working load`} value={levelEligible ? workingLoads[mapping.exercise.id] ?? "" : ""} onChange={(event) => setWorkingLoads((current) => { const next = { ...current }; if (event.target.value) next[mapping.exercise.id] = Number(event.target.value); else delete next[mapping.exercise.id]; return next; })}><option value="">{levelEligible ? "Not approved" : "Level locked"}</option>{levelEligible ? loads.filter((load) => load <= mapping.loadRule.maximumStartingLoadKg || workingLoads[mapping.exercise.id] === load).map((load) => <option key={load} value={load}>{load} kg</option>) : null}</select></label>;
+    })}</div><button className="button secondary" type="button" onClick={saveProfile}>{saved ? "Saved" : "Save working loads"}</button></section>
     <section className="profile-section"><h2>Training program</h2><p><strong>{profile.trainingLevel.replaceAll("_", " ")} · Phase {profile.phase}</strong></p><p>If your current training consistently feels too easy, BellGrinda can assess whether you are ready for a higher level. One easy session is never enough.</p><Link className="button secondary" to="/level-review">Review my level</Link><small>Advanced and Grandmaster continue to require their dedicated program evidence.</small></section>
     <section className="profile-section"><h2>Your training record</h2><p>Your profile and sessions are saved in this browser on this device. Clearing browser data removes those records. Account sync is not available yet.</p></section>
     <section className="install-card"><h2>{installed ? "Ready on your home screen" : "Make room for your next workout"}</h2><p>{installed ? "BellGrinda is running as an app. Saved sessions and written movement guides are available offline." : "Add BellGrinda to your home screen for a focused, full-screen workout."}</p>{!installed && prompt ? <button className="button primary" onClick={install}><DownloadSimple size={20} /> Install BellGrinda</button> : !installed ? <p>Open your browser menu and choose Install app or Add to Home Screen.</p> : null}{installError ? <p role="status">{installError}</p> : null}</section>

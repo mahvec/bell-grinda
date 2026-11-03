@@ -1,6 +1,8 @@
 # Exercise media review
 
-Reviewed 25 October 2026. The catalog only accepts full-body framing: head, feet, hands and equipment must remain visible, including overhead travel. `object-fit: contain` preserves the source frame in the app. Portrait footage is letterboxed, never enlarged to fill a landscape crop.
+Reviewed 3 November 2026. Bundled media only accepts full-body framing: head, feet, hands and equipment must remain visible, including overhead travel. `object-fit: contain` preserves the source frame in the app. Portrait footage is letterboxed, never enlarged to fill a landscape crop.
+
+The expanded learning library also uses exact-movement tutorials streamed through publisher-controlled YouTube or Vimeo embeds. These records use `framing: "instructional"`, are clearly labelled online-only, and cannot be saved by BellGrinda. The title, publisher description, and movement match are reviewed before inclusion; this is distinct from BellGrinda's full-frame inspection and redistribution review of bundled assets.
 
 ## Included assets
 
@@ -21,6 +23,12 @@ Reviewed 25 October 2026. The catalog only accepts full-body framing: head, feet
 
 The Wikimedia clips are used under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) and identify the adaptations in the in-app metadata. The deadlift, two bodyweight clips, and both dumbbell clips use the [Pexels License](https://www.pexels.com/license/). Attribution and source/license links are shown in the player. Posters are frames from the same footage. The media is bundled as application content; no endorsement by the depicted people is claimed.
 
+## Hosted instructional coverage
+
+The supplemental library contains 20 user-requested entries. Each has a written three-step guide plus an exact hosted tutorial: halo; thruster; single-leg clean; standard/single-arm biceps curl; hammer curl; Zottman curl; Russian twist; windmill; side bend; figure 8; two-hand rotational swing; hip shift; clean to rotational press; suitcase deadlift; standing/half-kneeling wood chop; RDL; single-leg RDL; kickstand/B-stance deadlift; good morning; and two-leg/single-leg glute bridge.
+
+Where one entry intentionally contains a progression pair, the player states which variation is shown and the written guide explains the regression or progression. The two non-English mobility chapters (side bend and hip shift) retain BellGrinda's English written cues. These movements enter generated workouts only through the deterministic mapping pipeline: level and phase eligibility, supplemental prerequisites, pain/soreness and activity filtering, owned equipment, and an explicit exercise-specific approved load.
+
 Visual review verifies the depicted movement and framing, not professional coaching certification. Written guides remain visible independently of playback. A qualified trainer should review the finished catalog before public release.
 
 ## Rejected material
@@ -35,12 +43,14 @@ Visual review verifies the depicted movement and framing, not professional coach
 
 ## Outstanding coverage
 
-All eight kettlebell exercises and both dumbbell exercises in the current library now have full-body demos. Reverse lunge, dead bug, glute bridge, cat-cow, breathing and walking still have written guides only. Do not alias a similar clip to those exercise IDs.
+All generated kettlebell exercises and both generated dumbbell exercises have bundled full-body demos. All 20 supplemental movements have hosted exact-movement instruction. Reverse lunge, dead bug, the original unloaded glute bridge, cat-cow, breathing and walking still have written guides only. Do not alias a similar clip to those exercise IDs.
 
 The examined wger collection did not cover the prescribed kettlebell variants. GitHub rehosts of ExerciseDB material may contain files without reusable media rights; an open-source application license does not automatically license its video assets. Prefer a verifiable open media license for future additions, otherwise use a reviewed Pexels source or commissioned footage.
 
 ## Playback and offline behavior
 
-Videos are local application assets under `public/media/`, loaded on request, and excluded from the shell precache. Small posters are precached. Save offline fetches a complete video into `exercise-media-v1`. The player can read that response as a Blob URL, including without a service worker. The production service worker supports byte-range playback from the same cache. Browsers may evict local storage; offline availability is checked again when the component mounts.
+Bundled videos are local application assets under `public/media/`, loaded on request, and excluded from the shell precache. Small posters are precached. Save offline fetches a complete bundled video into `exercise-media-v1`. The player can read that response as a Blob URL, including without a service worker. The production service worker supports byte-range playback from the same cache. Browsers may evict local storage; offline availability is checked again when the component mounts.
 
-To add media: verify provenance, inspect the entire clip for framing and movement, preserve aspect ratio when transcoding, add metadata and a review note to `exerciseMedia.ts`, and test actual playback plus saved playback offline. Keep `framing: "full-body"` mandatory.
+Hosted tutorials load only after the user opens them, use the publisher's privacy-enhanced embed where available, and show neither playback-speed controls nor BellGrinda's offline-save action. If the user is offline or the publisher removes a video, the written cues and safety note remain available.
+
+To add bundled media: verify provenance, inspect the entire clip for framing and movement, preserve aspect ratio when transcoding, add metadata and a review note to `exerciseMedia.ts`, and test actual playback plus saved playback offline. Keep `framing: "full-body"` mandatory for bundled assets. For hosted instruction, verify the exact movement, creator/source, embed URL, and variation disclosure; use `framing: "instructional"` and never expose the offline-save action.
