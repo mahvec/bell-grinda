@@ -27,6 +27,13 @@ describe("supplemental exercise mapping", () => {
     expect(getEligibleMappedExercises(profile({ equipmentItems: [{ id: "kb-16", equipmentType: "kettlebell", weightKg: 16, quantity: 1, active: true, createdAt: now, updatedAt: now }] }), readiness, 1)).toHaveLength(0);
   });
 
+  it("allows an owned weight above the suggested start when the user approves it", () => {
+    const halo = profile({ trainingLevel: "novice", phase: 1, equipmentItems: [{ id: "kb-12", equipmentType: "kettlebell", weightKg: 12, quantity: 1, active: true, createdAt: now, updatedAt: now }], exerciseWorkingLoadsKg: { "kb-halo": 12 } });
+    const eligibleHalo = getEligibleMappedExercises(halo, readiness, 1).find((item) => item.exercise.id === "kb-halo");
+    expect(eligibleHalo?.exercise.loadKg).toBe(12);
+    expect(eligibleHalo?.mapping.loadRule.suggestedStartingLoadKg).toBe(4);
+  });
+
   it("blocks relevant pain, soreness, and match-day activity before generation", () => {
     const backPain: ReadinessResult = { ...readiness, input: { ...readiness.input!, pain: "moderate", painLocations: ["lower_back"] } };
     const soreHamstring: ReadinessResult = { ...readiness, input: { ...readiness.input!, soreness: "moderate", sorenessLocations: ["hamstring"] } };

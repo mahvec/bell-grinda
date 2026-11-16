@@ -8,10 +8,10 @@ import { NavLink } from "react-router-dom";
 
 const navigation = [
   { to: "/", label: "Home", icon: House },
-  { to: "/history", label: "Train", icon: Barbell },
+  { to: "/history", label: "Activity", icon: Barbell },
   { to: "/progress", label: "Progress", icon: ChartLineUp },
-  { to: "/coach", label: "AI Coach", icon: ChatCircleText },
-  { to: "/profile", label: "More", icon: UserCircle }
+  { to: "/coach", label: "Coach", icon: ChatCircleText },
+  { to: "/profile", label: "Profile", icon: UserCircle }
 ];
 
 export function AppShell({ children, action }: { children: ReactNode; action?: ReactNode }) {
