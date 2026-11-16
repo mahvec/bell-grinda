@@ -107,17 +107,17 @@ Future commercial versions may support:
 
 The initial BellGrinda training goals are prioritized as follows:
 
-1. Athleticism.
-2. Training consistency and discipline.
-3. Strength.
-4. Muscular endurance and cardiovascular conditioning.
-5. Fat loss.
-6. Bigger chest.
-7. Muscle gain.
+1. Training consistency and discipline.
+2. Strength.
+3. Overall muscle gain.
+4. Fat loss and body recomposition.
+5. Bigger chest.
+6. Athleticism.
+7. Muscular endurance and cardiovascular conditioning.
 
 BellGrinda programming should reflect this ordering.
 
-The application should not optimize exclusively for bodybuilding metrics or maximal muscle growth at the expense of athleticism, training consistency, strength, or conditioning.
+The application should prioritize sustainable whole-body development and body recomposition rather than scale weight alone. It should not optimize exclusively for bodybuilding metrics or maximal muscle growth at the expense of readiness, safety, or sustainable consistency.
 
 ---
 

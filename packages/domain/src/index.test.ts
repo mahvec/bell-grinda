@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
+  DEFAULT_GOAL_PRIORITIES,
   createSession,
+  getGoalPriorities,
   getSessionCompletedSets,
   getSessionCompletionPercentage,
   getSessionSkippedSets,
@@ -8,7 +10,8 @@ import {
   readinessInputSchema,
   userEquipmentSchema,
   workoutSessionSchema,
-  type GeneratedWorkout
+  type GeneratedWorkout,
+  type UserProfile
 } from "./index";
 
 const workout: GeneratedWorkout = generatedWorkoutSchema.parse({
@@ -38,6 +41,12 @@ const workout: GeneratedWorkout = generatedWorkoutSchema.parse({
 });
 
 describe("domain contracts", () => {
+  it("applies the body-recomposition priorities to legacy profiles without deleting profile data", () => {
+    const legacyProfile: UserProfile = { id: "legacy", name: "Ada", trainingLevel: "novice", phase: 1, equipment: ["kettlebell_12"], createdAt: "2026-10-01" };
+    expect(getGoalPriorities(legacyProfile)).toEqual(DEFAULT_GOAL_PRIORITIES);
+    expect(legacyProfile).not.toHaveProperty("goalPriorities");
+  });
+
   it("stores multiple kettlebell weights and quantities", () => {
     const items = [{ id: "12", equipmentType: "kettlebell", weightKg: 12, quantity: 2, active: true, createdAt: "2026-10-01", updatedAt: "2026-10-01" }, { id: "16", equipmentType: "kettlebell", weightKg: 16, quantity: 1, active: true, createdAt: "2026-10-01", updatedAt: "2026-10-01" }, { id: "20", equipmentType: "kettlebell", weightKg: 20, quantity: 1, active: true, createdAt: "2026-10-01", updatedAt: "2026-10-01" }];
     expect(items.map((item) => userEquipmentSchema.parse(item))).toHaveLength(3);

@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { Barbell } from "@phosphor-icons/react/Barbell";
 import { Check } from "@phosphor-icons/react/Check";
-import type { Equipment, UserEquipment, UserProfile } from "@bellgrinda/domain";
+import { DEFAULT_GOAL_PRIORITIES, type Equipment, type UserEquipment, type UserProfile } from "@bellgrinda/domain";
 import { profileRepository } from "../persistence/database";
 import { setProfile } from "../state/store";
 import { useAppDispatch } from "../state/hooks";
@@ -39,6 +39,7 @@ export function OnboardingPage() {
       equipmentItems: [...equipmentItems, ...equipment.filter((item) => !["kettlebell_12", "dumbbell"].includes(item)).map((item) => ({ id: crypto.randomUUID(), equipmentType: item === "skipping_rope" ? "rope" as const : item === "chair" ? "bench" as const : item as "mat", quantity: 1, active: true, createdAt: now, updatedAt: now })), ...(equipment.includes("dumbbell") ? [{ id: crypto.randomUUID(), equipmentType: "dumbbell" as const, weightKg: dumbbellKg, quantity: 1, active: true, createdAt: now, updatedAt: now }] : [])],
       defaultKettlebellKg: kettlebells[0]!.weightKg,
       defaultDumbbellKg: equipment.includes("dumbbell") ? dumbbellKg : undefined,
+      goalPriorities: [...DEFAULT_GOAL_PRIORITIES],
       createdAt: new Date().toISOString()
     };
     await profileRepository.save(profile);

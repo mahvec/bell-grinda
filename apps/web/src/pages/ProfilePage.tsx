@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { DownloadSimple } from "@phosphor-icons/react/DownloadSimple";
 import { Link } from "react-router-dom";
-import { getProfileEquipment, getSessionCompletedSets, getSessionDurationSeconds, type Equipment, type UserEquipment, type WorkoutSession } from "@bellgrinda/domain";
+import { getGoalPriorities, getProfileEquipment, getSessionCompletedSets, getSessionDurationSeconds, type Equipment, type UserEquipment, type WorkoutSession } from "@bellgrinda/domain";
 import { supplementalExerciseMappings } from "@bellgrinda/training-engine";
 import { AppShell } from "../components/AppShell";
 import { useAppDispatch, useAppSelector } from "../state/hooks";
@@ -11,6 +11,7 @@ import { KettlebellEditor } from "../components/KettlebellEditor";
 
 type InstallPrompt = Event & { prompt: () => Promise<void>; userChoice: Promise<{ outcome: string }> };
 const levelRank = { novice: 0, advanced_novice: 1, intermediate: 2, advanced: 3, grandmaster: 4 } as const;
+const goalLabel: Record<string, string> = { consistency: "Training consistency and discipline", strength: "Strength", muscle_gain: "Overall muscle gain", fat_loss_recomposition: "Fat loss and body recomposition", bigger_chest: "Bigger chest", athleticism: "Athleticism", endurance_cardio: "Muscular endurance and cardiovascular conditioning" };
 export function ProfilePage() {
   const profile = useAppSelector((state) => state.app.profile)!;
   const dispatch = useAppDispatch();
@@ -70,7 +71,8 @@ export function ProfilePage() {
       const levelEligible = levelRank[profile.trainingLevel] >= levelRank[mapping.minimumLevel];
       return <label key={mapping.exercise.id}><span><strong>{mapping.exercise.name}</strong><small>{levelEligible ? `Minimum ${mapping.minimumLevel.replaceAll("_", " ")} · start at or below ${mapping.loadRule.maximumStartingLoadKg} kg` : `Unlocks at ${mapping.minimumLevel.replaceAll("_", " ")}`}</small></span><select disabled={!levelEligible} aria-label={`${mapping.exercise.name} approved working load`} value={levelEligible ? workingLoads[mapping.exercise.id] ?? "" : ""} onChange={(event) => setWorkingLoads((current) => { const next = { ...current }; if (event.target.value) next[mapping.exercise.id] = Number(event.target.value); else delete next[mapping.exercise.id]; return next; })}><option value="">{levelEligible ? "Not approved" : "Level locked"}</option>{levelEligible ? loads.filter((load) => load <= mapping.loadRule.maximumStartingLoadKg || workingLoads[mapping.exercise.id] === load).map((load) => <option key={load} value={load}>{load} kg</option>) : null}</select></label>;
     })}</div><button className="button secondary" type="button" onClick={saveProfile}>{saved ? "Saved" : "Save working loads"}</button></section>
-    <section className="profile-section"><h2>Training program</h2><p><strong>{profile.trainingLevel.replaceAll("_", " ")} · Phase {profile.phase}</strong></p><p>If your current training consistently feels too easy, BellGrinda can assess whether you are ready for a higher level. One easy session is never enough.</p><Link className="button secondary" to="/level-review">Review my level</Link><small>Advanced and Grandmaster continue to require their dedicated program evidence.</small></section>
+    <section className="profile-section"><h2>Development priorities</h2><p>BellGrinda uses this order to explain and shape your training while readiness and pain rules always take precedence.</p><ol className="goal-priority-list">{getGoalPriorities(profile).map((goal) => <li key={goal}>{goalLabel[goal]}</li>)}</ol></section>
+    <section className="profile-section"><h2>Training program</h2><p><strong>{profile.trainingLevel.replaceAll("_", " ")} · Phase {profile.phase}</strong></p><p>If your current training consistently feels too easy, you can request a progress test at any time. BellGrinda first checks your recent training, then offers a controlled next-level workout when it is safe to test.</p><Link className="button secondary" to="/progress-test">Take a progress test</Link><small>Advanced and Grandmaster continue to require their dedicated program evidence.</small></section>
     <section className="profile-section"><h2>Your training record</h2><p>Your profile and sessions are saved in this browser on this device. Clearing browser data removes those records. Account sync is not available yet.</p></section>
     <section className="install-card"><h2>{installed ? "Ready on your home screen" : "Make room for your next workout"}</h2><p>{installed ? "BellGrinda is running as an app. Saved sessions and written movement guides are available offline." : "Add BellGrinda to your home screen for a focused, full-screen workout."}</p>{!installed && prompt ? <button className="button primary" onClick={install}><DownloadSimple size={20} /> Install BellGrinda</button> : !installed ? <p>Open your browser menu and choose Install app or Add to Home Screen.</p> : null}{installError ? <p role="status">{installError}</p> : null}</section>
   </AppShell>;
