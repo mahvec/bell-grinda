@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { exerciseMedia, getExerciseMedia } from "./exerciseMedia";
-import { exerciseCatalog, exerciseMuscles, getMovementCues, supplementalExercises } from "./exerciseGuide";
+import { exerciseCatalog, exerciseMuscles, getEquipmentAlternatives, getMovementCues, supplementalExercises } from "./exerciseGuide";
 
 describe("exercise media catalog", () => {
   const kettlebellExerciseIds = exerciseCatalog.filter((exercise) => exercise.equipmentType === "kettlebell" || exercise.equipmentType === "kettlebell_or_dumbbell").map((exercise) => exercise.id);
@@ -55,5 +55,15 @@ describe("exercise media catalog", () => {
       expect(exerciseMuscles[exercise.id]?.primary.length, exercise.id).toBeGreaterThan(0);
       expect(exerciseMuscles[exercise.id]?.supporting.length, exercise.id).toBeGreaterThan(0);
     }
+  });
+
+  it("provides dumbbell and barbell alternatives wherever the movement translates safely", () => {
+    const intentionallyUnloaded = new Set(["breathing", "cat-cow", "easy-walk", "skipping"]);
+    for (const exercise of exerciseCatalog) {
+      if (intentionallyUnloaded.has(exercise.id)) continue;
+      expect(getEquipmentAlternatives(exercise).length, exercise.id).toBeGreaterThan(0);
+    }
+    expect(getEquipmentAlternatives(exerciseCatalog.find((exercise) => exercise.id === "goblet-squat")!).map((item) => item.equipmentType)).toEqual(["dumbbell", "barbell"]);
+    expect(getEquipmentAlternatives(exerciseCatalog.find((exercise) => exercise.id === "kb-halo")!).map((item) => item.equipmentType)).toEqual(["dumbbell"]);
   });
 });

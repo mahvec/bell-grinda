@@ -7,7 +7,7 @@ import { AppShell } from "../components/AppShell";
 import { useAppDispatch, useAppSelector } from "../state/hooks";
 import { profileRepository, sessionRepository } from "../persistence/database";
 import { setProfile } from "../state/store";
-import { KettlebellEditor } from "../components/KettlebellEditor";
+import { KettlebellEditor, WeightEquipmentEditor } from "../components/KettlebellEditor";
 
 type InstallPrompt = Event & { prompt: () => Promise<void>; userChoice: Promise<{ outcome: string }> };
 const levelRank = { novice: 0, advanced_novice: 1, intermediate: 2, advanced: 3, grandmaster: 4 } as const;
@@ -19,8 +19,8 @@ export function ProfilePage() {
   const [name, setName] = useState(profile.name);
   const [weight, setWeight] = useState(profile.defaultKettlebellKg ?? 12);
   const [equipmentItems, setEquipmentItems] = useState<UserEquipment[]>(getProfileEquipment(profile));
-  const [dumbbellWeight, setDumbbellWeight] = useState(profile.defaultDumbbellKg ?? 15);
   const [hasDumbbell, setHasDumbbell] = useState(profile.equipment.includes("dumbbell"));
+  const [hasBarbell, setHasBarbell] = useState(profile.equipment.includes("barbell"));
   const [workingLoads, setWorkingLoads] = useState<Record<string, number>>(profile.exerciseWorkingLoadsKg ?? {});
   const [saved, setSaved] = useState(false);
   const [prompt, setPrompt] = useState<InstallPrompt | null>(null);
@@ -44,14 +44,17 @@ export function ProfilePage() {
   }, [sessions]);
   const saveProfile = async () => {
     if (!name.trim()) return;
-    const equipment = hasDumbbell ? [...new Set([...profile.equipment, "dumbbell" as Equipment])] : profile.equipment.filter((item) => item !== "dumbbell");
+    const selectedEquipment = profile.equipment.filter((item) => !["dumbbell", "barbell"].includes(item));
+    const equipment = [...new Set([...selectedEquipment, ...(hasDumbbell ? ["dumbbell" as Equipment] : []), ...(hasBarbell ? ["barbell" as Equipment] : [])])];
     const bells = equipmentItems.filter((item) => item.equipmentType === "kettlebell" && item.active);
     if (!bells.length) return;
-    const nonWeights = equipmentItems.filter((item) => !["kettlebell", "dumbbell"].includes(item.equipmentType));
+    const allowedWeightedTypes = new Set(["kettlebell", ...(hasDumbbell ? ["dumbbell"] : []), ...(hasBarbell ? ["barbell"] : [])]);
+    const nextItems = equipmentItems.filter((item) => !["kettlebell", "dumbbell", "barbell"].includes(item.equipmentType) || allowedWeightedTypes.has(item.equipmentType));
     const now = new Date().toISOString();
-    const nextItems = [...bells, ...nonWeights, ...(hasDumbbell ? [{ id: equipmentItems.find((item) => item.equipmentType === "dumbbell")?.id ?? crypto.randomUUID(), equipmentType: "dumbbell" as const, weightKg: dumbbellWeight, quantity: 1, active: true, createdAt: now, updatedAt: now }] : [])];
+    if (hasDumbbell && !nextItems.some((item) => item.equipmentType === "dumbbell")) nextItems.push({ id: crypto.randomUUID(), equipmentType: "dumbbell", weightKg: 15, quantity: 1, active: true, createdAt: now, updatedAt: now });
+    if (hasBarbell && !nextItems.some((item) => item.equipmentType === "barbell")) nextItems.push({ id: crypto.randomUUID(), equipmentType: "barbell", weightKg: 20, quantity: 1, active: true, createdAt: now, updatedAt: now });
     const defaultLoad = bells.some((item) => item.weightKg === weight) ? weight : bells[0]!.weightKg!;
-    const next = { ...profile, name: name.trim(), equipment, equipmentItems: nextItems, exerciseWorkingLoadsKg: workingLoads, defaultKettlebellKg: defaultLoad, defaultDumbbellKg: hasDumbbell ? dumbbellWeight : undefined };
+    const next = { ...profile, name: name.trim(), equipment, equipmentItems: nextItems, exerciseWorkingLoadsKg: workingLoads, defaultKettlebellKg: defaultLoad, defaultDumbbellKg: hasDumbbell ? nextItems.find((item) => item.equipmentType === "dumbbell")?.weightKg : undefined, defaultBarbellKg: hasBarbell ? nextItems.find((item) => item.equipmentType === "barbell")?.weightKg : undefined };
     await profileRepository.save(next); dispatch(setProfile(next)); setSaved(true); window.setTimeout(() => setSaved(false), 1800);
   };
   const install = async () => {
@@ -65,7 +68,7 @@ export function ProfilePage() {
     <section className="profile-stats" aria-label="Training summary"><span><strong>{completedSessions}</strong> workouts</span><span><strong>{Math.round(totalSeconds / 60)}</strong> minutes</span><span><strong>{totalSets}</strong> sets</span><span><strong>{sessions.length ? Math.round(totalSeconds / sessions.length / 60) : 0}</strong> avg min</span></section>
     <nav className="profile-nav" aria-label="Profile sections"><a href="#personal-setup">Setup</a><a href="#working-loads">Working loads</a><a href="#priorities">Priorities</a><a href="#training-program">Program</a></nav>
     <section className="profile-insight"><p className="kicker">Your most trained movement</p><h2>{favoriteMovement}</h2><p>Based on completed sets in your workout history.</p></section>
-    <section className="profile-section" id="personal-setup"><h2>Personal setup</h2><p>Keep these current so future workout prescriptions match what you actually use.</p><div className="profile-form"><label className="field">Name<input value={name} onChange={(event) => setName(event.target.value)} maxLength={60} /></label><KettlebellEditor items={equipmentItems} onChange={setEquipmentItems} /><label className="field">Default working kettlebell<span className="weight-input"><select value={weight} onChange={(event) => setWeight(Number(event.target.value))}>{equipmentItems.filter((item) => item.equipmentType === "kettlebell").map((item) => <option key={item.id} value={item.weightKg}>{item.weightKg} kg</option>)}</select></span></label><button className={`equipment-option${hasDumbbell ? " selected" : ""}`} type="button" aria-pressed={hasDumbbell} onClick={() => setHasDumbbell((current) => !current)}><span><strong>{hasDumbbell ? "Dumbbell added" : "Add a dumbbell"}</strong><small>Include dumbbell movements in your equipment library</small></span></button>{hasDumbbell ? <label className="field">Default dumbbell weight<span className="weight-input"><input type="number" inputMode="decimal" min="1" max="200" step="0.5" value={dumbbellWeight} onChange={(event) => setDumbbellWeight(Math.max(1, Number(event.target.value)))} /><small>kg</small></span></label> : null}<button className="button secondary" type="button" onClick={saveProfile}>{saved ? "Saved" : "Save changes"}</button></div></section>
+    <section className="profile-section" id="personal-setup"><h2>Personal setup</h2><p>Keep these current so future workout prescriptions match what you actually use.</p><div className="profile-form"><label className="field">Name<input value={name} onChange={(event) => setName(event.target.value)} maxLength={60} /></label><KettlebellEditor items={equipmentItems} onChange={setEquipmentItems} /><label className="field">Default working kettlebell<span className="weight-input"><select value={weight} onChange={(event) => setWeight(Number(event.target.value))}>{equipmentItems.filter((item) => item.equipmentType === "kettlebell").map((item) => <option key={item.id} value={item.weightKg}>{item.weightKg} kg</option>)}</select></span></label><button className={`equipment-option${hasDumbbell ? " selected" : ""}`} type="button" aria-pressed={hasDumbbell} onClick={() => setHasDumbbell((current) => !current)}><span><strong>{hasDumbbell ? "Dumbbells enabled" : "Add dumbbells"}</strong><small>Track every dumbbell weight or pair you own</small></span></button>{hasDumbbell ? <WeightEquipmentEditor items={equipmentItems} onChange={setEquipmentItems} equipmentType="dumbbell" title="Dumbbells" defaultWeight={15} /> : null}<button className={`equipment-option${hasBarbell ? " selected" : ""}`} type="button" aria-pressed={hasBarbell} onClick={() => setHasBarbell((current) => !current)}><span><strong>{hasBarbell ? "Barbell enabled" : "Add a barbell"}</strong><small>Track total loaded barbell weights</small></span></button>{hasBarbell ? <WeightEquipmentEditor items={equipmentItems} onChange={setEquipmentItems} equipmentType="barbell" title="Barbell loads" defaultWeight={20} /> : null}<button className="button secondary" type="button" onClick={saveProfile}>{saved ? "Saved" : "Save changes"}</button></div></section>
     <section className="profile-section"><h2>Your equipment</h2><div className="equipment-chips">{getProfileEquipment(profile).map((item) => <span key={item.id}>{item.weightKg ? `${item.weightKg} kg ` : ""}{item.equipmentType} × {item.quantity}</span>)}</div></section>
     <section className="profile-section" id="working-loads"><h2>Exercise working loads</h2><p>Choose any weight you own as the working load for a level-eligible movement. Suggested starting weights are guidance, not limits, and you can record a different actual weight during every set. Level, phase, pain, soreness, activity, and equipment rules still apply.</p><div className="working-load-list">{supplementalExerciseMappings.map((mapping) => {
       const loads = [...new Set(equipmentItems.filter((item) => item.active && (mapping.equipmentType === "kettlebell_or_dumbbell" ? ["kettlebell", "dumbbell"].includes(item.equipmentType) : item.equipmentType === mapping.equipmentType)).flatMap((item) => item.weightKg ? [item.weightKg] : []))].sort((a, b) => a - b);

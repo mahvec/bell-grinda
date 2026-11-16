@@ -4,7 +4,7 @@ import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it } from "vitest";
 import { createSession, generatedWorkoutSchema } from "@bellgrinda/domain";
 import { db } from "../persistence/database";
-import { setActiveSession, store } from "../state/store";
+import { setActiveSession, setProfile, store } from "../state/store";
 import { SessionPage } from "./SessionPage";
 
 const workout = generatedWorkoutSchema.parse({
@@ -29,6 +29,7 @@ describe("workout completion flow", () => {
     const session = createSession(workout, new Date("2026-10-19T06:00:00.000Z"));
     await db.sessions.put(session);
     store.dispatch(setActiveSession(session));
+    store.dispatch(setProfile({ id: "session-user", name: "Ada", trainingLevel: "novice", phase: 1, equipment: ["kettlebell_12", "dumbbell", "barbell"], equipmentItems: [{ id: "kb", equipmentType: "kettlebell", weightKg: 12, quantity: 1, active: true, createdAt: "2026-10-01", updatedAt: "2026-10-01" }, { id: "db", equipmentType: "dumbbell", weightKg: 10, quantity: 2, active: true, createdAt: "2026-10-01", updatedAt: "2026-10-01" }, { id: "bb", equipmentType: "barbell", weightKg: 20, quantity: 1, active: true, createdAt: "2026-10-01", updatedAt: "2026-10-01" }], createdAt: "2026-10-01" }));
   });
 
   it("records actual work, RPE, and notes before finalizing", async () => {
@@ -48,6 +49,14 @@ describe("workout completion flow", () => {
     expect(saved).toMatchObject({ rpe: 7, notes: "Strong session.", completionType: "completed" });
     expect(saved?.setLogs[0]).toMatchObject({ actualReps: 9, actualLoadKg: 10, status: "completed" });
     expect(await db.progressionDecisions.where("sessionId").equals(saved!.id).count()).toBe(1);
+  });
+
+  it("logs the owned equipment alternative selected for a set", async () => {
+    renderSession();
+    fireEvent.change(screen.getByLabelText(/equipment variation/i), { target: { value: "dumbbell" } });
+    fireEvent.click(screen.getByRole("button", { name: /complete set/i }));
+    expect(await screen.findByText("Dumbbell goblet squat")).toBeInTheDocument();
+    expect((await db.sessions.toCollection().first())?.setLogs[0]).toMatchObject({ exerciseId: "goblet-squat", exerciseName: "Dumbbell goblet squat", actualLoadKg: 10 });
   });
 
   it("reviews and finalizes useful partial work", async () => {

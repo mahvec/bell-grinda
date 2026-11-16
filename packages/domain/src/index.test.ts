@@ -8,6 +8,7 @@ import {
   getSessionSkippedSets,
   generatedWorkoutSchema,
   readinessInputSchema,
+  userProfileSchema,
   userEquipmentSchema,
   workoutSessionSchema,
   type GeneratedWorkout,
@@ -51,6 +52,11 @@ describe("domain contracts", () => {
     const items = [{ id: "12", equipmentType: "kettlebell", weightKg: 12, quantity: 2, active: true, createdAt: "2026-10-01", updatedAt: "2026-10-01" }, { id: "16", equipmentType: "kettlebell", weightKg: 16, quantity: 1, active: true, createdAt: "2026-10-01", updatedAt: "2026-10-01" }, { id: "20", equipmentType: "kettlebell", weightKg: 20, quantity: 1, active: true, createdAt: "2026-10-01", updatedAt: "2026-10-01" }];
     expect(items.map((item) => userEquipmentSchema.parse(item))).toHaveLength(3);
     expect(userEquipmentSchema.parse(items[0]).quantity).toBe(2);
+  });
+  it("supports future dumbbell and barbell equipment without changing existing profile fields", () => {
+    const profile = userProfileSchema.parse({ id: "mixed-equipment", name: "Ada", trainingLevel: "novice", phase: 1, equipment: ["kettlebell_12", "dumbbell", "barbell"], equipmentItems: [{ id: "db-10", equipmentType: "dumbbell", weightKg: 10, quantity: 2, active: true, createdAt: "2026-10-01", updatedAt: "2026-10-01" }, { id: "bb-20", equipmentType: "barbell", weightKg: 20, quantity: 1, active: true, createdAt: "2026-10-01", updatedAt: "2026-10-01" }], defaultDumbbellKg: 10, defaultBarbellKg: 20, createdAt: "2026-10-01" });
+    expect(profile.equipment).toEqual(expect.arrayContaining(["dumbbell", "barbell"]));
+    expect(profile.defaultBarbellKg).toBe(20);
   });
   it("rejects incomplete readiness input", () => {
     expect(

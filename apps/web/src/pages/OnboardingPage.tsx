@@ -11,6 +11,7 @@ import { KettlebellEditor } from "../components/KettlebellEditor";
 const choices: { id: Equipment; label: string; note: string }[] = [
   { id: "kettlebell_12", label: "Kettlebell", note: "Add every weight and quantity you own below" },
   { id: "dumbbell", label: "Dumbbell", note: "Optional strength and single-leg work" },
+  { id: "barbell", label: "Barbell", note: "Optional bilateral strength and future progression" },
   { id: "mat", label: "Exercise mat", note: "Core and recovery work" },
   { id: "chair", label: "Chair or bench", note: "Regressions and supported movements" },
   { id: "skipping_rope", label: "Skipping rope", note: "Conditioning sessions" }
@@ -23,6 +24,7 @@ export function OnboardingPage() {
   const now = new Date().toISOString();
   const [equipmentItems, setEquipmentItems] = useState<UserEquipment[]>([{ id: crypto.randomUUID(), equipmentType: "kettlebell", weightKg: 12, quantity: 1, active: true, createdAt: now, updatedAt: now }]);
   const [dumbbellKg, setDumbbellKg] = useState(15);
+  const [barbellKg, setBarbellKg] = useState(20);
   const [error, setError] = useState("");
 
   const submit = async (event: FormEvent) => {
@@ -36,9 +38,10 @@ export function OnboardingPage() {
       trainingLevel: "novice",
       phase: 1,
       equipment,
-      equipmentItems: [...equipmentItems, ...equipment.filter((item) => !["kettlebell_12", "dumbbell"].includes(item)).map((item) => ({ id: crypto.randomUUID(), equipmentType: item === "skipping_rope" ? "rope" as const : item === "chair" ? "bench" as const : item as "mat", quantity: 1, active: true, createdAt: now, updatedAt: now })), ...(equipment.includes("dumbbell") ? [{ id: crypto.randomUUID(), equipmentType: "dumbbell" as const, weightKg: dumbbellKg, quantity: 1, active: true, createdAt: now, updatedAt: now }] : [])],
+      equipmentItems: [...equipmentItems, ...equipment.filter((item) => !["kettlebell_12", "dumbbell", "barbell"].includes(item)).map((item) => ({ id: crypto.randomUUID(), equipmentType: item === "skipping_rope" ? "rope" as const : item === "chair" ? "bench" as const : item as "mat", quantity: 1, active: true, createdAt: now, updatedAt: now })), ...(equipment.includes("dumbbell") ? [{ id: crypto.randomUUID(), equipmentType: "dumbbell" as const, weightKg: dumbbellKg, quantity: 1, active: true, createdAt: now, updatedAt: now }] : []), ...(equipment.includes("barbell") ? [{ id: crypto.randomUUID(), equipmentType: "barbell" as const, weightKg: barbellKg, quantity: 1, active: true, createdAt: now, updatedAt: now }] : [])],
       defaultKettlebellKg: kettlebells[0]!.weightKg,
       defaultDumbbellKg: equipment.includes("dumbbell") ? dumbbellKg : undefined,
+      defaultBarbellKg: equipment.includes("barbell") ? barbellKg : undefined,
       goalPriorities: [...DEFAULT_GOAL_PRIORITIES],
       createdAt: new Date().toISOString()
     };
@@ -87,6 +90,10 @@ export function OnboardingPage() {
         {equipment.includes("dumbbell") ? <label className="field">
           <span>Your dumbbell weight</span>
           <span className="weight-input"><input type="number" inputMode="decimal" min="1" max="200" step="0.5" value={dumbbellKg} onChange={(event) => setDumbbellKg(Math.max(1, Number(event.target.value)))} /><small>kg</small></span>
+        </label> : null}
+        {equipment.includes("barbell") ? <label className="field">
+          <span>Your initial total barbell load</span>
+          <span className="weight-input"><input type="number" inputMode="decimal" min="1" max="500" step="0.5" value={barbellKg} onChange={(event) => setBarbellKg(Math.max(1, Number(event.target.value)))} /><small>kg</small></span>
         </label> : null}
         {error ? <p className="form-error" role="alert">{error}</p> : null}
         <button className="button primary" type="submit">Create my plan</button>

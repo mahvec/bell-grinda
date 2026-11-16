@@ -7,11 +7,11 @@ import { SkipForward } from "@phosphor-icons/react/SkipForward";
 import { Warning } from "@phosphor-icons/react/Warning";
 import { X } from "@phosphor-icons/react/X";
 import { Link, Navigate, useNavigate } from "react-router-dom";
-import { getAvailableKettlebellLoads, getSessionCompletedSets, getSessionCompletionPercentage, getSessionDurationSeconds, getSessionSkippedSets, type BodyLocation, type PainEvent, type PainSeverity, type WorkoutSession } from "@bellgrinda/domain";
+import { getAvailableKettlebellLoads, getProfileEquipment, getSessionCompletedSets, getSessionCompletionPercentage, getSessionDurationSeconds, getSessionSkippedSets, type BodyLocation, type PainEvent, type PainSeverity, type WorkoutSession } from "@bellgrinda/domain";
 import { createPerformanceSnapshot, decidePainAction, detectSessionPersonalRecords, evaluateLevelTrial, evaluateProgression, type PainDecision } from "@bellgrinda/training-engine";
 import { ExerciseDemo } from "../components/ExerciseDemo";
 import { getExerciseMedia } from "../media/exerciseMedia";
-import { getMovementCues } from "../media/exerciseGuide";
+import { getEquipmentAlternatives, getMovementCues } from "../media/exerciseGuide";
 import { levelReviewRepository, painEventRepository, performanceSnapshotRepository, personalRecordRepository, progressionDecisionRepository, sessionRepository } from "../persistence/database";
 import { useAppDispatch, useAppSelector } from "../state/hooks";
 import { setActiveSession } from "../state/store";
@@ -103,6 +103,7 @@ function SessionReview({ session }: { session: WorkoutSession }) {
 
 export function SessionPage() {
   const session = useAppSelector((state) => state.app.activeSession);
+  const profile = useAppSelector((state) => state.app.profile)!;
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const [showPainReport, setShowPainReport] = useState(false);
@@ -115,6 +116,7 @@ export function SessionPage() {
   const [endReason, setEndReason] = useState("");
   const [actualReps, setActualReps] = useState(0);
   const [actualLoadKg, setActualLoadKg] = useState<number | null>(null);
+  const [selectedVariation, setSelectedVariation] = useState("prescribed");
   const [savingSet, setSavingSet] = useState(false);
 
   useEffect(() => {
@@ -122,11 +124,14 @@ export function SessionPage() {
     if (!exercise) return;
     setActualReps(targetNumber(exercise.target));
     setActualLoadKg(exercise.loadKg);
+    setSelectedVariation("prescribed");
   }, [session?.currentExerciseIndex, session?.currentRound, session?.workout.exercises]);
 
   if (!session) return <Navigate to="/" replace />;
   if (session.status === "review_pending") return <SessionReview session={session} />;
   const current = session.workout.exercises[session.currentExerciseIndex]!;
+  const ownedEquipment = getProfileEquipment(profile);
+  const availableAlternatives = getEquipmentAlternatives(current).filter((alternative) => ownedEquipment.some((item) => item.equipmentType === alternative.equipmentType));
   const currentMedia = getExerciseMedia(current.id);
   const nextExercise = session.workout.exercises[session.currentExerciseIndex + 1] ?? (session.currentRound < session.workout.rounds ? session.workout.exercises[0] : undefined);
   const total = session.workout.rounds * session.workout.exercises.length;
@@ -144,12 +149,13 @@ export function SessionPage() {
     const recordedAt = timestamp();
     const exercise = base.workout.exercises[base.currentExerciseIndex]!;
     const actualTarget = skipped ? null : actualTargetText(exercise.target, actualReps);
+    const selectedAlternative = getEquipmentAlternatives(exercise).find((alternative) => alternative.equipmentType === selectedVariation);
     const logs = base.exerciseLogs.map((log, index) => index === base.currentExerciseIndex
       ? { ...log, completedRounds: skipped ? log.completedRounds : log.completedRounds + 1, skipped: log.skipped || skipped, actualTarget: actualTarget ?? log.actualTarget }
       : log);
     const setLogs = [...(base.setLogs ?? []).filter((log) => !(log.round === base.currentRound && log.exerciseId === exercise.id)), {
       exerciseId: exercise.id,
-      exerciseName: exercise.name,
+      exerciseName: selectedAlternative?.name ?? exercise.name,
       round: base.currentRound,
       status: skipped ? "skipped" as const : "completed" as const,
       plannedTarget: exercise.target,
@@ -290,8 +296,16 @@ export function SessionPage() {
         <h1>{current.name}</h1>
         <div className="prescription"><strong>{current.target}</strong>{current.loadKg ? <span>{current.loadKg} kg</span> : <span>Bodyweight</span>}</div>
         <div className="actual-entry" aria-label="Actual set details">
+          {availableAlternatives.length ? <label>Equipment variation<select value={selectedVariation} onChange={(event) => {
+            const nextVariation = event.target.value;
+            setSelectedVariation(nextVariation);
+            if (nextVariation === "prescribed") return setActualLoadKg(current.loadKg);
+            const loads = ownedEquipment.filter((item) => item.equipmentType === nextVariation && item.weightKg).map((item) => item.weightKg!);
+            const preferred = nextVariation === "dumbbell" ? profile.defaultDumbbellKg : profile.defaultBarbellKg;
+            setActualLoadKg((preferred && loads.includes(preferred) ? preferred : loads[0]) ?? current.loadKg);
+          }}><option value="prescribed">Prescribed · {current.name}</option>{availableAlternatives.map((alternative) => <option key={alternative.equipmentType} value={alternative.equipmentType}>{alternative.equipmentType === "dumbbell" ? "Dumbbell" : "Barbell"} · {alternative.name}</option>)}</select></label> : null}
           <label>Actual {targetUnit(current.target)}<input type="number" inputMode="numeric" min="0" max="999" value={actualReps} onChange={(event) => setActualReps(Math.max(0, Number(event.target.value)))} /></label>
-          {current.loadKg !== null ? <label>Actual load<input type="number" inputMode="decimal" min="0" max="200" step="0.5" value={actualLoadKg ?? ""} onChange={(event) => setActualLoadKg(event.target.value === "" ? null : Math.max(0, Number(event.target.value)))} /><span>kg</span></label> : null}
+          {current.loadKg !== null || selectedVariation !== "prescribed" ? <label>Actual load<input type="number" inputMode="decimal" min="0" max="500" step="0.5" value={actualLoadKg ?? ""} onChange={(event) => setActualLoadKg(event.target.value === "" ? null : Math.max(0, Number(event.target.value)))} /><span>kg</span></label> : null}
           <small>Defaults to today&apos;s prescription. Change only what you actually completed.</small>
         </div>
         {current.note ? <div className="technique-note"><Warning size={20} /><p>{current.note}</p></div> : null}
