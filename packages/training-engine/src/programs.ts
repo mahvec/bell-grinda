@@ -1,4 +1,4 @@
-import { getAvailableKettlebellLoads, type ExercisePrescription, type GeneratedWorkout, type ReadinessResult, type TrainingLevel, type UserProfile } from "@bellgrinda/domain";
+import { getAvailableKettlebellLoads, getGoalPriorities, type ExercisePrescription, type GeneratedWorkout, type ReadinessResult, type TrainingLevel, type UserProfile } from "@bellgrinda/domain";
 import { getEligibleMappedExercises } from "./exercise-mapping";
 
 type Day = { title: string; focus: string; exercises: ExercisePrescription[] };
@@ -94,6 +94,8 @@ export function generateProgramWorkout(date: Date, readiness: ReadinessResult, p
   const preferredLoad = profile.defaultKettlebellKg ?? availableLoads[0] ?? 0;
   const load = availableLoads.includes(preferredLoad) ? preferredLoad : ([...availableLoads].reverse().find((item) => item <= preferredLoad) ?? availableLoads[0] ?? 0);
   const definition = program(profile.trainingLevel, load, profile.phase);
+  const goals = getGoalPriorities(profile);
+  const followsRecompositionPriorities = goals.slice(0, 4).join(":") === "consistency:strength:muscle_gain:fat_loss_recomposition";
   const footballCompetition = readiness.reasonCodes.includes("FOOTBALL_COMPETITION_DAY");
   const footballHigh = readiness.reasonCodes.includes("FOOTBALL_HIGH_INTENSITY_DAY");
   const football = footballCompetition || footballHigh;
@@ -134,7 +136,7 @@ export function generateProgramWorkout(date: Date, readiness: ReadinessResult, p
     estimatedMinutes,
     readiness,
     exercises,
-    reasonCodes: [`LEVEL_${profile.trainingLevel.toUpperCase()}`, `PHASE_${profile.phase}`, `READINESS_${readiness.status.toUpperCase()}`, "ELIGIBLE_POOL_FILTERED", "SAFETY_FILTERED", "READINESS_ACTIVITY_FILTERED", ...(selectedMapped && !isRed && !useActivation ? ["MAPPED_EXERCISE_SELECTED"] : []), ...(reduced ? ["VOLUME_REDUCED"] : []), ...(useActivation ? ["FOOTBALL_ACTIVATION"] : []), ...(lowerBodySoreness ? ["LOWER_BODY_VOLUME_REDUCED"] : []), ...(rounds < baseRounds ? ["TIME_CAPPED"] : []), "EQUIPMENT_LOADS_VALIDATED"],
+    reasonCodes: [`LEVEL_${profile.trainingLevel.toUpperCase()}`, `PHASE_${profile.phase}`, `READINESS_${readiness.status.toUpperCase()}`, "ELIGIBLE_POOL_FILTERED", "SAFETY_FILTERED", "READINESS_ACTIVITY_FILTERED", ...(followsRecompositionPriorities && !isRed && !useActivation ? ["GOAL_STRENGTH_MUSCLE_RECOMPOSITION"] : []), ...(selectedMapped && !isRed && !useActivation ? ["MAPPED_EXERCISE_SELECTED"] : []), ...(reduced ? ["VOLUME_REDUCED"] : []), ...(useActivation ? ["FOOTBALL_ACTIVATION"] : []), ...(lowerBodySoreness ? ["LOWER_BODY_VOLUME_REDUCED"] : []), ...(rounds < baseRounds ? ["TIME_CAPPED"] : []), "EQUIPMENT_LOADS_VALIDATED"],
     engineVersion: definition.version
   };
 }

@@ -57,6 +57,10 @@ export type UserEquipment = z.infer<typeof userEquipmentSchema>;
 export const trainingLevelSchema = z.enum(["novice", "advanced_novice", "intermediate", "advanced", "grandmaster"]);
 export type TrainingLevel = z.infer<typeof trainingLevelSchema>;
 
+export const trainingGoalSchema = z.enum(["consistency", "strength", "muscle_gain", "fat_loss_recomposition", "bigger_chest", "athleticism", "endurance_cardio"]);
+export type TrainingGoal = z.infer<typeof trainingGoalSchema>;
+export const DEFAULT_GOAL_PRIORITIES: TrainingGoal[] = ["consistency", "strength", "muscle_gain", "fat_loss_recomposition", "bigger_chest", "athleticism", "endurance_cardio"];
+
 export const userProfileSchema = z.object({
   id: z.string(),
   name: z.string().min(1),
@@ -67,6 +71,7 @@ export const userProfileSchema = z.object({
   exerciseWorkingLoadsKg: z.record(z.string(), z.number().positive().max(200)).optional(),
   defaultKettlebellKg: z.number().positive().max(200).optional(),
   defaultDumbbellKg: z.number().positive().max(200).optional(),
+  goalPriorities: z.array(trainingGoalSchema).length(DEFAULT_GOAL_PRIORITIES.length).optional(),
   createdAt: z.string()
 });
 export type UserProfile = z.infer<typeof userProfileSchema>;
@@ -296,6 +301,7 @@ export type LevelHistoryEntry = z.infer<typeof levelHistoryEntrySchema>;
 export const coachContextSchema = z.object({
   currentTrainingLevel: trainingLevelSchema,
   currentPhase: z.number().int().min(1).max(3),
+  goalPriorities: z.array(trainingGoalSchema).optional(),
   readiness: readinessResultSchema.optional(),
   availableEquipment: z.array(userEquipmentSchema),
   todayWorkout: generatedWorkoutSchema.optional(),
@@ -313,6 +319,10 @@ export const coachRequestSchema = z.object({
 });
 export const coachResponseSchema = z.object({ answer: z.string().min(1), source: z.enum(["ai", "deterministic"]), uncertainty: z.boolean() });
 export type CoachResponse = z.infer<typeof coachResponseSchema>;
+
+export function getGoalPriorities(profile: UserProfile): TrainingGoal[] {
+  return profile.goalPriorities?.length === DEFAULT_GOAL_PRIORITIES.length ? profile.goalPriorities : [...DEFAULT_GOAL_PRIORITIES];
+}
 
 export function getProfileEquipment(profile: UserProfile): UserEquipment[] {
   if (profile.equipmentItems?.length) return profile.equipmentItems.filter((item) => item.active);

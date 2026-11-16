@@ -48,7 +48,8 @@ export function App() {
         <Route path="/progress" element={<ProgressPage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/coach" element={<CoachPage />} />
-        <Route path="/level-review" element={<LevelReviewPage />} />
+        <Route path="/progress-test" element={<LevelReviewPage />} />
+        <Route path="/level-review" element={<Navigate to="/progress-test" replace />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Suspense>

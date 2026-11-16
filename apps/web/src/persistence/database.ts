@@ -1,5 +1,5 @@
 import Dexie, { type EntityTable } from "dexie";
-import type { Assessment, DailyReadinessRecord, LevelHistoryEntry, LevelProgressionReview, PainEvent, PerformanceSnapshot, PersonalRecord, ProgressionDecision, UserProfile, WorkoutSession } from "@bellgrinda/domain";
+import { DEFAULT_GOAL_PRIORITIES, type Assessment, type DailyReadinessRecord, type LevelHistoryEntry, type LevelProgressionReview, type PainEvent, type PerformanceSnapshot, type PersonalRecord, type ProgressionDecision, type UserProfile, type WorkoutSession } from "@bellgrinda/domain";
 
 export class BellGrindaDatabase extends Dexie {
   profiles!: EntityTable<UserProfile, "id">;
@@ -68,6 +68,22 @@ export class BellGrindaDatabase extends Dexie {
       readinessRecords: "id, date, createdAt",
       levelReviews: "id, currentLevel, result, requestedAt",
       levelHistory: "id, previousLevel, newLevel, changedAt"
+    });
+    this.version(7).stores({
+      profiles: "id, createdAt",
+      sessions: "id, status, startedAt, updatedAt, completedAt",
+      painEvents: "id, sessionId, exerciseId, bodyLocation, severity, occurredAt",
+      progressionDecisions: "id, sessionId, scope, exerciseId, decision, createdAt",
+      assessments: "id, date, type, createdAt",
+      personalRecords: "id, exerciseId, recordType, sessionId, date",
+      performanceSnapshots: "id, calculatedAt, sourceSessionId, sourceAssessmentId",
+      readinessRecords: "id, date, createdAt",
+      levelReviews: "id, currentLevel, result, requestedAt",
+      levelHistory: "id, previousLevel, newLevel, changedAt"
+    }).upgrade(async (transaction) => {
+      await transaction.table<UserProfile>("profiles").toCollection().modify((profile) => {
+        profile.goalPriorities ??= [...DEFAULT_GOAL_PRIORITIES];
+      });
     });
   }
 }

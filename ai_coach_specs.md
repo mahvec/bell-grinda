@@ -1179,15 +1179,15 @@ This produces reliable long-term behavior.
 
 The AI Coach may receive current goal priority:
 
-1. Athleticism.
-2. Consistency.
-3. Strength.
-4. Endurance/cardio.
-5. Fat loss.
-6. Bigger chest.
-7. Muscle gain.
+1. Training consistency and discipline.
+2. Strength.
+3. Overall muscle gain.
+4. Fat loss and body recomposition.
+5. Bigger chest.
+6. Athleticism.
+7. Muscular endurance and cardiovascular conditioning.
 
-This helps AI explain why BellGrinda may prioritize athletic performance over maximizing chest volume.
+This helps AI explain why BellGrinda prioritizes sustainable strength and whole-body muscle development while treating scale weight as only one body-recomposition signal.
 
 ---
 

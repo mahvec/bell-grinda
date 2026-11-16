@@ -35,6 +35,10 @@ describe("program generation", () => {
     const workout = generateProgramWorkout(new Date("2026-10-19T09:00:00.000Z"), green, customProfile);
     expect(workout.exercises.filter((exercise) => exercise.loadKg !== null).every((exercise) => exercise.loadKg === 16)).toBe(true);
   });
+  it("marks normal workouts as aligned to the selected strength and recomposition priorities", () => {
+    const workout = generateProgramWorkout(new Date("2026-10-19T09:00:00.000Z"), green, profile("novice"));
+    expect(workout.reasonCodes).toContain("GOAL_STRENGTH_MUSCLE_RECOMPOSITION");
+  });
   it("replaces the workout with low-fatigue activation on high-intensity football days", () => {
     const workout = generateProgramWorkout(new Date("2026-10-23T09:00:00.000Z"), { ...green, status: "yellow", reasonCodes: ["FOOTBALL_HIGH_INTENSITY_DAY"] }, profile("advanced"));
     expect(workout).toMatchObject({ title: "Football-day activation", rounds: 2, estimatedMinutes: 12 });
