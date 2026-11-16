@@ -13,18 +13,18 @@ export type ExerciseMapping = {
   easierVariation: string;
   harderVariation: string;
   replaces: string[];
-  loadRule: { requiresExerciseApproval: true; minimumSuccessfulSessionsBeforeIncrease: number; maximumStartingLoadKg: number };
+  loadRule: { requiresExerciseApproval: true; minimumSuccessfulSessionsBeforeIncrease: number; suggestedStartingLoadKg: number };
 };
 
 const mapped = (
   id: string, name: string, category: ExercisePrescription["category"], target: string, defaultLoadKg: number,
   equipmentType: MappedEquipment, minimumLevel: TrainingLevel, prerequisites: string[], blockedPainLocations: BodyLocation[],
   eligibleDays: number[], eligiblePhases: number[], easierVariation: string, harderVariation: string, replaces: string[],
-  note: string, maximumStartingLoadKg = defaultLoadKg, blockedAtPain: ExerciseMapping["blockedAtPain"] = "moderate"
+  note: string, suggestedStartingLoadKg = defaultLoadKg, blockedAtPain: ExerciseMapping["blockedAtPain"] = "moderate"
 ): ExerciseMapping => ({
   exercise: { id, name, category, target, loadKg: defaultLoadKg, note }, equipmentType, minimumLevel, prerequisites,
   blockedPainLocations, blockedAtPain, eligibleDays, eligiblePhases, easierVariation, harderVariation, replaces,
-  loadRule: { requiresExerciseApproval: true, minimumSuccessfulSessionsBeforeIncrease: 2, maximumStartingLoadKg }
+  loadRule: { requiresExerciseApproval: true, minimumSuccessfulSessionsBeforeIncrease: 2, suggestedStartingLoadKg }
 });
 
 export const supplementalExerciseMappings: ExerciseMapping[] = [
