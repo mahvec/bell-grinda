@@ -3,11 +3,12 @@ import { Clock } from "@phosphor-icons/react/Clock";
 import { Play } from "@phosphor-icons/react/Play";
 import { ShieldCheck } from "@phosphor-icons/react/ShieldCheck";
 import { Link, Navigate, useNavigate } from "react-router-dom";
+import { getProfileEquipment } from "@bellgrinda/domain";
 import { AppShell } from "../components/AppShell";
 import { ExerciseDemo } from "../components/ExerciseDemo";
 import { StatusBadge } from "../components/StatusBadge";
 import { getExerciseMedia } from "../media/exerciseMedia";
-import { getMovementCues } from "../media/exerciseGuide";
+import { getEquipmentAlternatives, getMovementCues } from "../media/exerciseGuide";
 import { useAppDispatch, useAppSelector } from "../state/hooks";
 import { setPreparedWorkout } from "../state/store";
 import { WorkoutExplanation } from "../components/WorkoutExplanation";
@@ -17,6 +18,7 @@ export function WorkoutPreviewPage() {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const profile = useAppSelector((state) => state.app.profile)!;
+  const ownedEquipment = new Set(getProfileEquipment(profile).map((item) => item.equipmentType));
   if (!workout) return <Navigate to="/readiness" replace />;
 
   const start = () => {
@@ -38,9 +40,10 @@ export function WorkoutPreviewPage() {
       <ol className="exercise-list">
         {workout.exercises.map((item, index) => {
           const media = getExerciseMedia(item.id);
+          const alternatives = getEquipmentAlternatives(item);
           return <li key={item.id}>
             <span className="exercise-number">{String(index + 1).padStart(2, "0")}</span>
-            <div><h2>{item.name}</h2><p>{item.target}{item.loadKg ? ` · ${item.loadKg} kg` : ""}</p>{item.note ? <small>{item.note}</small> : null}<details className="cue-details"><summary>Movement guide</summary><ol className="cue-list">{getMovementCues(item).map((cue) => <li key={cue}>{cue}</li>)}</ol></details>{media ? <ExerciseDemo media={media} exerciseName={item.name} /> : null}</div>
+            <div><h2>{item.name}</h2><p>{item.target}{item.loadKg ? ` · ${item.loadKg} kg` : ""}</p>{item.note ? <small>{item.note}</small> : null}{alternatives.length ? <div className="alternative-chips" aria-label={`${item.name} equipment alternatives`}>{alternatives.map((alternative) => <span key={alternative.equipmentType} data-owned={ownedEquipment.has(alternative.equipmentType)}>{alternative.equipmentType}: {alternative.name}{ownedEquipment.has(alternative.equipmentType) ? " · available" : ""}</span>)}</div> : null}<details className="cue-details"><summary>Movement guide</summary><ol className="cue-list">{getMovementCues(item).map((cue) => <li key={cue}>{cue}</li>)}</ol></details>{media ? <ExerciseDemo media={media} exerciseName={item.name} /> : null}</div>
           </li>;
         })}
       </ol>

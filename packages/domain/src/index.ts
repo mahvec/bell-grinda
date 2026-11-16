@@ -39,14 +39,14 @@ export type ReadinessResult = z.infer<typeof readinessResultSchema>;
 export const dailyReadinessRecordSchema = z.object({ id: z.string(), date: z.string(), input: readinessInputSchema, result: readinessResultSchema, createdAt: z.string() });
 export type DailyReadinessRecord = z.infer<typeof dailyReadinessRecordSchema>;
 
-export const equipmentSchema = z.enum(["kettlebell_12", "dumbbell", "mat", "chair", "skipping_rope"]);
+export const equipmentSchema = z.enum(["kettlebell_12", "dumbbell", "barbell", "mat", "chair", "skipping_rope"]);
 export type Equipment = z.infer<typeof equipmentSchema>;
 
-export const userEquipmentTypeSchema = z.enum(["kettlebell", "dumbbell", "rope", "mat", "bench"]);
+export const userEquipmentTypeSchema = z.enum(["kettlebell", "dumbbell", "barbell", "rope", "mat", "bench"]);
 export const userEquipmentSchema = z.object({
   id: z.string(),
   equipmentType: userEquipmentTypeSchema,
-  weightKg: z.number().positive().max(200).optional(),
+  weightKg: z.number().positive().max(500).optional(),
   quantity: z.number().int().positive().max(20),
   active: z.boolean(),
   createdAt: z.string(),
@@ -71,6 +71,7 @@ export const userProfileSchema = z.object({
   exerciseWorkingLoadsKg: z.record(z.string(), z.number().positive().max(200)).optional(),
   defaultKettlebellKg: z.number().positive().max(200).optional(),
   defaultDumbbellKg: z.number().positive().max(200).optional(),
+  defaultBarbellKg: z.number().positive().max(500).optional(),
   goalPriorities: z.array(trainingGoalSchema).length(DEFAULT_GOAL_PRIORITIES.length).optional(),
   createdAt: z.string()
 });
@@ -330,7 +331,7 @@ export function getProfileEquipment(profile: UserProfile): UserEquipment[] {
   return profile.equipment.map((item) => ({
     id: `legacy-${item}`,
     equipmentType: item === "kettlebell_12" ? "kettlebell" as const : item === "skipping_rope" ? "rope" as const : item === "chair" ? "bench" as const : item,
-    ...(item === "kettlebell_12" ? { weightKg: profile.defaultKettlebellKg ?? 12 } : item === "dumbbell" ? { weightKg: profile.defaultDumbbellKg ?? 15 } : {}),
+    ...(item === "kettlebell_12" ? { weightKg: profile.defaultKettlebellKg ?? 12 } : item === "dumbbell" ? { weightKg: profile.defaultDumbbellKg ?? 15 } : item === "barbell" ? { weightKg: profile.defaultBarbellKg ?? 20 } : {}),
     quantity: 1,
     active: true,
     createdAt: now,
