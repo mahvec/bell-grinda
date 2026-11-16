@@ -9,14 +9,14 @@ import { useAppDispatch, useAppSelector } from "../state/hooks";
 import { setPreparedWorkout } from "../state/store";
 import { progressionDecisionRepository, readinessRepository } from "../persistence/database";
 
-const questions: { key: "energy" | "sleep" | "soreness" | "pain" | "motivation" | "availableMinutes" | "football"; label: string; choices: { value: string | number; label: string }[] }[] = [
-  { key: "energy", label: "Energy", choices: [["high", "High"], ["normal", "Normal"], ["low", "Low"], ["very_low", "Very low"]].map(([value, label]) => ({ value: value!, label: label! })) },
-  { key: "sleep", label: "Sleep", choices: [["excellent", "Excellent"], ["good", "Good"], ["okay", "Okay"], ["poor", "Poor"]].map(([value, label]) => ({ value: value!, label: label! })) },
-  { key: "soreness", label: "Soreness", choices: [["none", "None"], ["mild", "Mild"], ["moderate", "Moderate"], ["severe", "Severe"]].map(([value, label]) => ({ value: value!, label: label! })) },
-  { key: "pain", label: "Pain", choices: [["none", "None"], ["mild", "Mild"], ["moderate", "Moderate"], ["severe", "Severe"]].map(([value, label]) => ({ value: value!, label: label! })) },
-  { key: "motivation", label: "Mood / motivation", choices: [["low", "Low"], ["normal", "Normal"], ["good", "Good"], ["very_motivated", "Very motivated"]].map(([value, label]) => ({ value: value!, label: label! })) },
-  { key: "availableMinutes", label: "Available training time", choices: [20, 30, 40, 45].map((value) => ({ value, label: value === 45 ? "45+ min" : `${value} min` })) },
-  { key: "football", label: "Football / other activity", choices: [["none", "None"], ["recreational", "Light"], ["match", "Normal match"], ["high_intensity", "High intensity"], ["competition", "Competition"]].map(([value, label]) => ({ value: value!, label: label! })) }
+const questions: { key: "energy" | "sleep" | "soreness" | "pain" | "motivation" | "availableMinutes" | "football"; label: string; hint: string; choices: { value: string | number; label: string }[] }[] = [
+  { key: "energy", label: "Energy", hint: "How energetic do you feel right now?", choices: [["high", "High"], ["normal", "Normal"], ["low", "Low"], ["very_low", "Very low"]].map(([value, label]) => ({ value: value!, label: label! })) },
+  { key: "sleep", label: "Sleep", hint: "Think about both duration and quality.", choices: [["excellent", "Excellent"], ["good", "Good"], ["okay", "Okay"], ["poor", "Poor"]].map(([value, label]) => ({ value: value!, label: label! })) },
+  { key: "soreness", label: "Muscle soreness", hint: "Normal training soreness, stiffness, or heaviness.", choices: [["none", "None"], ["mild", "Mild"], ["moderate", "Moderate"], ["severe", "Severe"]].map(([value, label]) => ({ value: value!, label: label! })) },
+  { key: "pain", label: "Pain or discomfort", hint: "Different from normal muscle soreness.", choices: [["none", "None"], ["mild", "Mild"], ["moderate", "Moderate"], ["severe", "Severe"]].map(([value, label]) => ({ value: value!, label: label! })) },
+  { key: "motivation", label: "Mood and motivation", hint: "How willing do you feel to train today?", choices: [["low", "Low"], ["normal", "Normal"], ["good", "Good"], ["very_motivated", "Very motivated"]].map(([value, label]) => ({ value: value!, label: label! })) },
+  { key: "availableMinutes", label: "Available time", hint: "BellGrinda will fit the session to your day.", choices: [20, 30, 40, 45].map((value) => ({ value, label: value === 45 ? "45+ min" : `${value} min` })) },
+  { key: "football", label: "Football or other activity", hint: "Include activity planned for later today.", choices: [["none", "None"], ["recreational", "Light"], ["match", "Normal match"], ["high_intensity", "High intensity"], ["competition", "Competition"]].map(([value, label]) => ({ value: value!, label: label! })) }
 ];
 
 const defaults: ReadinessInput = { energy: "normal", sleep: "good", soreness: "none", pain: "none", football: "none", motivation: "normal", availableMinutes: 40, sorenessLocations: [], painLocations: [] };
@@ -43,9 +43,10 @@ export function ReadinessPage() {
       <div className="flow-steps"><span><strong>01 Check in</strong></span><span>02 Your workout</span><span>03 Train</span></div>
       <section className="page-heading"><p className="kicker">A moment for yourself</p><h1>How’s your body today?</h1><p>Your answers set today’s pace. Check each selection below; recovery sessions count too.</p></section>
       <form className="readiness-form" onSubmit={submit}>
-        {questions.map((question) => (
+        {questions.map((question, index) => (
           <fieldset className="choice-group" key={question.key}>
-            <legend>{question.label}</legend>
+            <legend><span>{index + 1}</span>{question.label}</legend>
+            <p>{question.hint}</p>
             <div className="segmented">
               {question.choices.map((choice) => (
                 <label key={choice.value}>
@@ -63,7 +64,7 @@ export function ReadinessPage() {
           </fieldset>
         ))}
         {(["soreness", "pain"] as const).map((kind) => values[kind] !== "none" ? <fieldset className="choice-group" key={`${kind}-locations`}><legend>Where is the {kind === "pain" ? "discomfort" : "soreness"}?</legend><div className="region-grid">{locations.map((location) => { const key = kind === "pain" ? "painLocations" : "sorenessLocations"; const selected = values[key].includes(location.value); return <button type="button" key={location.value} aria-pressed={selected} onClick={() => setValues((current) => ({ ...current, [key]: selected ? current[key].filter((item) => item !== location.value) : [...current[key], location.value] }))}>{location.label}</button>; })}</div></fieldset> : null)}
-        <button className="button primary" type="submit">Build today's workout <ArrowRight size={18} weight="bold" /></button>
+        <div className="readiness-submit"><span>All selections can be changed before continuing.</span><button className="button primary" type="submit">Build today&apos;s workout <ArrowRight size={18} weight="bold" /></button></div>
       </form>
     </AppShell>
   );
